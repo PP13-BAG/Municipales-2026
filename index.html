@@ -1,0 +1,2140 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Municipales 2026 · BdR · Suivi en direct</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+
+/* ─── TOKENS ─────────────────────────────────────── */
+[data-theme="dark"] {
+  --bg:#0c0e14; --surf:#131720; --surf2:#1a1f2d; --surf3:#222839;
+  --bd:#2b3347; --bd2:#38435a;
+  --tx:#dde3f0; --tx2:#8a96b0; --tx3:#4e5a72;
+  --acc:#e8c14a; --acc2:#c9a436;
+  --shd:rgba(0,0,0,.6); --mbg:#181d2a;
+  --gain:#22c55e; --keep:#60a5fa; --none:#4e5a72;
+}
+[data-theme="light"] {
+  --bg:#eef1f8; --surf:#fff; --surf2:#f4f6fb; --surf3:#e8ecf5;
+  --bd:#d0d6e8; --bd2:#b8c0d8;
+  --tx:#1a1f2d; --tx2:#4e5a72; --tx3:#8a96b0;
+  --acc:#b8890a; --acc2:#956e08;
+  --shd:rgba(0,0,0,.1); --mbg:#dde3f0;
+  --gain:#16a34a; --keep:#2563eb; --none:#9ca3af;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--tx);font-size:13px;line-height:1.4;display:flex;flex-direction:column}
+
+/* ─── HEADER ──────────────────────────────────────── */
+.hd{height:50px;background:var(--surf);border-bottom:1px solid var(--bd);display:flex;align-items:center;padding:0 14px;gap:14px;flex-shrink:0;z-index:20;box-shadow:0 1px 6px var(--shd)}
+.brand{font-size:15px;font-weight:700;color:var(--acc);white-space:nowrap}
+.brand span{color:var(--tx2);font-weight:400;font-size:12px}
+.live-dot{background:#dc2626;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:2px;letter-spacing:1px;display:none;animation:blink 1.4s infinite}
+.live-dot.on{display:inline-block}
+@keyframes blink{50%{opacity:.3}}
+
+.hd-mid{display:flex;gap:8px;margin-left:auto}
+.chip{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:3px;font-size:11px;font-weight:600;border:1px solid transparent;cursor:default}
+.chip-gain{background:color-mix(in srgb,var(--gain) 12%,transparent);color:var(--gain);border-color:color-mix(in srgb,var(--gain) 30%,transparent)}
+.chip-keep{background:color-mix(in srgb,var(--keep) 12%,transparent);color:var(--keep);border-color:color-mix(in srgb,var(--keep) 30%,transparent)}
+.chip-t1{background:color-mix(in srgb,var(--acc) 12%,transparent);color:var(--acc);border-color:color-mix(in srgb,var(--acc) 30%,transparent)}
+.chip-t2{background:color-mix(in srgb,var(--none) 15%,transparent);color:var(--tx2);border-color:var(--bd)}
+
+.hd-right{display:flex;gap:6px;align-items:center}
+.ibt{width:30px;height:30px;background:var(--surf2);border:1px solid var(--bd);color:var(--tx2);border-radius:3px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .15s}
+.ibt:hover{background:var(--surf3);color:var(--tx)}
+
+/* ─── LAYOUT ──────────────────────────────────────── */
+.wrap{display:flex;flex:1;overflow:hidden;min-height:0}
+
+/* ─── CARTES ──────────────────────────────────────── */
+.maps{flex:1;display:flex;min-width:0;overflow:hidden}
+.mcol{flex:1;display:flex;flex-direction:column;border-right:1px solid var(--bd);overflow:hidden;min-width:0;position:relative}
+.mcol:last-child{border-right:none}
+.mbar{height:34px;background:var(--surf);border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;padding:0 12px;flex-shrink:0}
+.mbar-t{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--tx3)}
+.mbar-t.on{color:var(--acc)}
+.mbadge{font-family:'DM Mono',monospace;font-size:10px;padding:1px 7px;border-radius:2px;background:var(--surf2);color:var(--tx3);border:1px solid var(--bd)}
+.mbadge.on{background:color-mix(in srgb,var(--acc) 10%,transparent);color:var(--acc);border-color:var(--acc)}
+
+.mwrap{flex:1;position:relative;background:var(--mbg);overflow:hidden}
+svg.map{width:100%;height:100%;display:block}
+
+/* paths */
+.cp{stroke:rgba(0,0,0,.25);stroke-width:.4;transition:filter .12s,stroke .1s,stroke-width .1s;vector-effect:non-scaling-stroke;cursor:default}
+.cp:hover{stroke:var(--acc)!important;stroke-width:1.8!important;filter:brightness(1.22)!important}
+#map26 .cp{cursor:pointer}
+.cp-sel{stroke:var(--acc)!important;stroke-width:2.5!important;filter:brightness(1.25)!important}
+
+/* T2 pending: subtle grey stroke */
+.cp-t2{stroke:var(--tx3)!important;stroke-width:.6!important}
+
+/* loader */
+.ldr{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--mbg);gap:10px;z-index:10;transition:opacity .3s}
+.ldr.gone{opacity:0;pointer-events:none}
+.spin{width:24px;height:24px;border:2px solid var(--bd);border-top-color:var(--acc);border-radius:50%;animation:rot .7s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+
+/* ─── SIDEBAR ─────────────────────────────────────── */
+.sb{width:310px;flex-shrink:0;background:var(--surf);border-left:1px solid var(--bd);display:flex;flex-direction:column;overflow:hidden}
+.sb-tabs{display:flex;border-bottom:1px solid var(--bd);flex-shrink:0}
+.sbt{flex:1;height:34px;border:none;background:none;color:var(--tx3);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;border-bottom:2px solid transparent;transition:all .15s}
+.sbt:hover{color:var(--tx)}
+.sbt.on{color:var(--acc);border-bottom-color:var(--acc)}
+.sp{display:none;flex-direction:column;gap:11px;padding:11px;overflow-y:auto;flex:1}
+.sp.on{display:flex}
+
+/* form elements */
+.slbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--tx3);margin-bottom:5px}
+.fi{background:var(--surf2);border:1px solid var(--bd);color:var(--tx);padding:6px 9px;border-radius:3px;font-family:'DM Sans',sans-serif;font-size:12px;outline:none;width:100%;transition:border-color .15s}
+.fi:focus{border-color:var(--acc)}
+.fi::placeholder{color:var(--tx3)}
+option,optgroup{background:var(--surf2)}
+.row2{display:flex;gap:6px}
+.row2>*{flex:1}
+
+.btn-v{background:var(--acc);color:#000;border:none;padding:8px;border-radius:3px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;width:100%;transition:opacity .15s}
+.btn-v:hover{opacity:.85}
+.btn-v:disabled{opacity:.3;cursor:not-allowed}
+.btn-del{border:1px solid var(--bd);background:none;color:var(--tx3);padding:6px;border-radius:3px;cursor:pointer;font-size:11px;width:100%;transition:all .15s;font-family:'DM Sans',sans-serif}
+.btn-del:hover{border-color:#ef4444;color:#ef4444}
+
+/* sel card */
+.sc{background:var(--surf2);border:1px solid var(--bd);border-radius:4px;padding:9px 11px}
+.sc-nom{font-size:14px;font-weight:700;line-height:1.2;margin-bottom:2px}
+.sc-sub{font-size:10px;color:var(--tx3);font-family:'DM Mono',monospace}
+
+/* T1 badge on sel card */
+.t1-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:2px;font-size:10px;font-weight:700;margin-top:5px;background:color-mix(in srgb,var(--acc) 12%,transparent);color:var(--acc);border:1px solid color-mix(in srgb,var(--acc) 30%,transparent)}
+
+/* search */
+.srch-wrap{position:relative}
+.srch-x{position:absolute;right:8px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--tx3);font-size:12px;display:none}
+.srch-x.on{display:block}
+.suggs{position:absolute;top:100%;left:0;right:0;background:var(--surf);border:1px solid var(--bd);border-top:none;z-index:300;max-height:150px;overflow-y:auto;display:none;box-shadow:0 6px 14px var(--shd);border-radius:0 0 3px 3px}
+.suggs.on{display:block}
+.sg{padding:6px 9px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:7px;transition:background .1s}
+.sg:hover{background:var(--surf2)}
+.sg-dot{width:8px;height:8px;border-radius:1px;flex-shrink:0}
+.sg-info{font-size:10px;color:var(--tx3);font-family:'DM Mono',monospace;margin-left:auto}
+
+/* bascule list */
+.bl-item{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:3px;cursor:pointer;border-left:3px solid var(--bd);transition:background .1s}
+.bl-item:hover{background:var(--surf2)}
+.bl-item.basc{border-left-color:var(--gain)}
+.bl-item.same{border-left-color:var(--keep)}
+.bl-nom{flex:1;font-size:12px;font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bl-sub{font-size:10px;color:var(--tx3);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pill{padding:1px 6px;border-radius:2px;font-size:10px;font-weight:700;font-family:'DM Mono',monospace;white-space:nowrap}
+
+/* legend */
+.lg-item{display:flex;align-items:center;gap:8px;padding:3px 6px;border-radius:3px}
+.lg-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.lg-code{font-family:'DM Mono',monospace;font-size:10px;font-weight:500;min-width:44px}
+.lg-lbl{flex:1;font-size:11px;color:var(--tx2)}
+.lg-cnt{font-family:'DM Mono',monospace;font-size:11px;min-width:22px;text-align:right}
+
+/* prog */
+.pr-row{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.pr-lbl{font-family:'DM Mono',monospace;font-size:10px;min-width:44px;font-weight:500}
+.pr-bg{flex:1;height:5px;background:var(--surf3);border-radius:3px;overflow:hidden}
+.pr-fill{height:100%;border-radius:3px;transition:width .4s}
+.pr-cnt{font-family:'DM Mono',monospace;font-size:10px;color:var(--tx3);min-width:20px;text-align:right}
+
+/* ─── TOOLTIP ─────────────────────────────────────── */
+.tip{position:fixed;background:var(--surf);border:1px solid var(--bd2);border-left:3px solid var(--acc);border-radius:4px;padding:11px 13px;pointer-events:none;z-index:1000;min-width:210px;max-width:290px;display:none;box-shadow:0 8px 24px var(--shd)}
+.tip.on{display:block}
+.tip-nom{font-size:15px;font-weight:700;margin-bottom:7px;line-height:1.1}
+.tr{display:flex;justify-content:space-between;gap:10px;margin-bottom:3px;align-items:baseline}
+.tl{font-size:11px;color:var(--tx3)}
+.tv{font-size:12px;font-weight:500;text-align:right;max-width:165px}
+.tip-badge{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:2px;margin-top:5px;font-size:11px;font-weight:700}
+.tip-sep{height:1px;background:var(--bd);margin:7px 0}
+.tip-basc{margin-top:4px}
+.tip-basc-row{display:flex;align-items:center;gap:6px;margin-bottom:3px}
+.tip-t1-ribbon{display:flex;align-items:center;gap:5px;margin-top:5px;font-size:10px;font-weight:700;color:var(--acc)}
+
+/* ─── NOTIF ───────────────────────────────────────── */
+.notif{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--surf);border:1px solid var(--acc);color:var(--tx);padding:7px 18px;border-radius:3px;font-size:12px;font-weight:500;z-index:2000;opacity:0;pointer-events:none;transition:opacity .25s;box-shadow:0 4px 12px var(--shd);white-space:nowrap}
+.notif.on{opacity:1}
+
+/* map legend overlay (bottom-left of each map) */
+.map-legend-overlay{position:absolute;bottom:8px;left:8px;background:color-mix(in srgb,var(--surf) 85%,transparent);border:1px solid var(--bd);border-radius:3px;padding:5px 8px;font-size:10px;display:flex;flex-direction:column;gap:2px;pointer-events:none}
+.mlo-row{display:flex;align-items:center;gap:5px}
+.mlo-dot{width:8px;height:8px;border-radius:1px;flex-shrink:0}
+
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px}
+
+/* ─── SYNC BANNER ─────────────────────────────────────── */
+.sync-bar{height:28px;background:var(--surf2);border-bottom:1px solid var(--bd);display:flex;align-items:center;padding:0 14px;gap:10px;flex-shrink:0;font-size:11px;color:var(--tx3)}
+.sync-status{display:flex;align-items:center;gap:5px}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--tx3);flex-shrink:0}
+.sync-dot.ok{background:#22c55e}
+.sync-dot.err{background:#ef4444}
+.sync-dot.sync{background:#f59e0b;animation:blink .6s infinite}
+.sync-id{font-family:'DM Mono',monospace;font-size:10px;color:var(--acc);cursor:pointer;text-decoration:underline dotted}
+.sync-actions{margin-left:auto;display:flex;gap:5px}
+
+/* ─── DASHBOARD BLOCS ──────────────────────────────────── */
+.dash{flex-shrink:0;background:var(--surf);border-bottom:1px solid var(--bd);padding:8px 14px;display:none}
+.dash.on{display:block}
+.dash-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--tx3);margin-bottom:6px}
+.bloc-bars{display:flex;gap:3px;height:28px;border-radius:3px;overflow:hidden}
+.bloc-seg{display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;transition:width .4s;min-width:0;overflow:hidden;white-space:nowrap}
+.bloc-legend{display:flex;gap:10px;margin-top:5px;flex-wrap:wrap}
+.bloc-leg-item{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--tx2)}
+.bloc-leg-dot{width:8px;height:8px;border-radius:1px;flex-shrink:0}
+.dep-bar{height:6px;background:var(--surf3);border-radius:3px;overflow:hidden;margin-top:5px}
+.dep-fill{height:100%;background:var(--acc);border-radius:3px;transition:width .4s}
+.dep-label{font-size:10px;color:var(--tx3);margin-top:3px}
+
+/* ─── MODAL GÉNÉRIQUE ──────────────────────────────────── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;display:none;align-items:center;justify-content:center}
+.modal-bg.on{display:flex}
+.modal{background:var(--surf);border:1px solid var(--bd2);border-radius:6px;padding:20px 22px;min-width:380px;max-width:520px;width:100%;box-shadow:0 12px 40px var(--shd)}
+.modal h3{font-size:14px;font-weight:700;margin-bottom:12px;color:var(--acc)}
+.modal p{font-size:12px;color:var(--tx2);line-height:1.6;margin-bottom:12px}
+.modal-row{display:flex;gap:8px;margin-bottom:8px}
+.modal-row>*{flex:1}
+.modal-btns{display:flex;gap:8px;margin-top:14px;justify-content:flex-end}
+.btn-sm{padding:6px 14px;border-radius:3px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--bd);background:var(--surf2);color:var(--tx);font-family:'DM Sans',sans-serif;transition:all .15s}
+.btn-sm:hover{background:var(--surf3)}
+.btn-sm.primary{background:var(--acc);color:#000;border-color:var(--acc)}
+.btn-sm.primary:hover{opacity:.85}
+.btn-sm.danger{border-color:#ef4444;color:#ef4444}
+.btn-sm.danger:hover{background:#ef444420}
+
+/* ─── LOG PANEL ────────────────────────────────────────── */
+.log-item{padding:5px 8px;border-radius:3px;font-size:11px;display:flex;gap:8px;border-left:2px solid var(--bd)}
+.log-item.in{border-left-color:var(--acc)}
+.log-time{font-family:'DM Mono',monospace;font-size:10px;color:var(--tx3);white-space:nowrap;flex-shrink:0}
+.log-msg{flex:1;color:var(--tx2)}
+
+/* ─── PRINT ────────────────────────────────────────────── */
+@media print{
+  body{overflow:visible!important;height:auto!important}
+  .hd,.sync-bar,.sb,.notif,.tip,.modal-bg{display:none!important}
+  .wrap{display:block!important;overflow:visible!important}
+  .maps{display:flex!important;flex-direction:row!important;gap:10mm}
+  .mcol{flex:1;page-break-inside:avoid}
+  .mwrap{height:200mm!important}
+  svg.map{width:100%!important;height:100%!important}
+  .dash{display:block!important;page-break-after:avoid}
+  .map-legend-overlay{display:none!important}
+  .print-legend{display:block!important}
+}
+.print-legend{display:none;margin-top:6mm;columns:3;font-size:8pt}
+.print-legend-item{display:flex;align-items:center;gap:4px;margin-bottom:2mm;break-inside:avoid}
+.print-legend-dot{width:8pt;height:8pt;border-radius:1pt;flex-shrink:0}
+</style>
+</head>
+<body>
+
+<!-- SYNC BAR -->
+<div class="sync-bar" id="syncBar" style="display:none">
+  <div class="sync-status">
+    <div class="sync-dot" id="syncDot"></div>
+    <span id="syncMsg">Non connecté</span>
+  </div>
+  <span style="color:var(--bd2)">|</span>
+  <span>ID session : <span class="sync-id" id="syncId" onclick="copySyncId()" title="Cliquer pour copier">—</span></span>
+  <span id="syncLastUpdate" style="font-size:10px"></span>
+  <div class="sync-actions">
+    <button class="ibt" style="width:auto;padding:0 8px;font-size:11px" onclick="syncNow()" title="Forcer la synchronisation">↻ Sync</button>
+  </div>
+</div>
+
+<!-- DASHBOARD BLOCS -->
+<div class="dash" id="dashboard">
+  <div class="dash-title">Répartition par bloc politique — résultats 2026</div>
+  <div class="bloc-bars" id="blocBars"></div>
+  <div class="bloc-legend" id="blocLegend"></div>
+  <div class="dep-bar"><div class="dep-fill" id="depFill" style="width:0%"></div></div>
+  <div class="dep-label" id="depLabel">0 / 119 communes déclarées (0%)</div>
+</div>
+
+<header class="hd">
+  <div class="brand">Municipales 2026 <span>· Bouches-du-Rhône</span></div>
+  <span class="live-dot" id="liveDot">● LIVE</span>
+
+  <div class="hd-mid">
+    <div class="chip chip-t1">✓ <span id="cT1">86</span> élus T1</div>
+    <div class="chip chip-t2">⏳ <span id="cT2r">0</span>/33 communes T2</div>
+    <div class="chip chip-gain">↔ <span id="cBasc">0</span> bascul. de bloc</div>
+    <div class="chip chip-keep">= <span id="cKeep">0</span> maire(s) reconduit·e</div>
+  </div>
+
+  <div class="hd-right">
+    <button class="ibt" id="dashBtn" title="Tableau de bord blocs" style="font-size:11px">📊</button>
+    <button class="ibt" id="syncSetupBtn" title="Collaboration multi-utilisateurs" style="font-size:11px">🔗</button>
+    <button class="ibt" onclick="openImportModal()" title="Importer CSV" style="font-size:11px">📥</button>
+    <button class="ibt" onclick="exportCSV()" title="Exporter CSV" style="font-size:11px">📤</button>
+    <button class="ibt" onclick="window.print()" title="Imprimer / Exporter PDF" style="font-size:11px">🖨</button>
+    <button class="ibt" id="themeBtn" title="Basculer thème">☀</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="maps">
+    <!-- 2020 -->
+    <div class="mcol">
+      <div class="mbar">
+        <span class="mbar-t">Référence 2020</span>
+        <span class="mbadge">2ème tour · 28 juin 2020</span>
+      </div>
+      <div class="mwrap">
+        <div class="ldr" id="ld20"><div class="spin"></div></div>
+        <svg class="map" id="map20" viewBox="0 0 600 500" preserveAspectRatio="xMidYMid meet"></svg>
+        <div class="map-legend-overlay">
+          <div style="font-size:9px;color:var(--tx3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">Nuances 2020</div>
+          <div class="mlo-row"><div class="mlo-dot" style="background:#636e72"></div><span style="color:var(--tx2)">LDIV Divers</span></div>
+          <div class="mlo-row"><div class="mlo-dot" style="background:#5dade2"></div><span style="color:var(--tx2)">LDVD Divers droite</span></div>
+          <div class="mlo-row"><div class="mlo-dot" style="background:#2980b9"></div><span style="color:var(--tx2)">LLR Républicains</span></div>
+          <div class="mlo-row"><div class="mlo-dot" style="background:#fd79a8"></div><span style="color:var(--tx2)">LDVG Divers gauche</span></div>
+          <div class="mlo-row"><div class="mlo-dot" style="background:#e84393"></div><span style="color:var(--tx2)">LSOC Parti Socialiste</span></div>
+          <div class="mlo-row"><div class="mlo-dot" style="background:#e17055"></div><span style="color:var(--tx2)">LUG Union gauche</span></div>
+          <div class="mlo-row"><div class="mlo-dot" style="background:#27ae60"></div><span style="color:var(--tx2)">LECO Écologiste</span></div>
+        </div>
+      </div>
+    </div>
+    <!-- 2026 -->
+    <div class="mcol">
+      <div class="mbar">
+        <span class="mbar-t on">Résultats 2026</span>
+        <span class="mbadge on">En direct</span>
+      </div>
+      <div class="mwrap">
+        <div class="ldr" id="ld26"><div class="spin"></div></div>
+        <svg class="map" id="map26" viewBox="0 0 600 500" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <aside class="sb">
+    <div class="sb-tabs">
+      <button class="sbt on" data-p="saisie">Saisie</button>
+      <button class="sbt" data-p="bascules">Bascules</button>
+      <button class="sbt" data-p="legende">Légende</button>
+      <button class="sbt" data-p="log" id="logTabBtn">Log</button>
+    </div>
+
+    <!-- SAISIE -->
+    <div class="sp on" id="p-saisie">
+      <div>
+        <div class="slbl">Commune sélectionnée</div>
+        <div class="sc">
+          <div class="sc-nom" id="selNom">— Aucune sélection —</div>
+          <div class="sc-sub" id="selCode">Cliquer sur la carte 2026 ou rechercher</div>
+          <div id="selT1badge" style="display:none" class="t1-badge">✓ Élu·e au 1er tour — modifiable si correction</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="slbl">Recherche rapide</div>
+        <div class="srch-wrap">
+          <input type="text" class="fi" id="srch" placeholder="Nom de commune…" autocomplete="off">
+          <span class="srch-x" id="srchX">✕</span>
+          <div class="suggs" id="suggs"></div>
+        </div>
+      </div>
+
+      <!-- FORMULAIRE STANDARD -->
+      <div id="formStd" style="display:flex;flex-direction:column;gap:7px">
+        <div class="slbl" style="margin-bottom:0">Résultat 2026</div>
+        <div>
+          <div style="font-size:11px;color:var(--tx2);margin-bottom:3px">Nuance officielle</div>
+          <select class="fi" id="nuanceSel"><option value="">— Choisir —</option></select>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--tx2);margin-bottom:3px">Tête de liste / Maire élu·e</div>
+          <input type="text" class="fi" id="maireIn" placeholder="Nom Prénom…">
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--tx2);margin-bottom:3px">Intitulé de la liste</div>
+          <input type="text" class="fi" id="listeIn" placeholder="Nom de la liste…">
+        </div>
+        <div class="row2">
+          <div>
+            <div style="font-size:11px;color:var(--tx2);margin-bottom:3px">% voix</div>
+            <input type="number" class="fi" id="pctIn" placeholder="52.4" min="0" max="100" step="0.1">
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--tx2);margin-bottom:3px">Tour</div>
+            <select class="fi" id="tourSel">
+              <option value="2">2ème tour</option>
+              <option value="1">1er tour</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn-v" id="valBtn" disabled>✓ Enregistrer</button>
+        <button class="btn-del" id="delBtn" style="display:none">Effacer la saisie manuelle</button>
+      </div>
+
+      <!-- FORMULAIRE MARSEILLE -->
+      <div id="formMrs" style="display:none;flex-direction:column;gap:7px">
+        <div class="slbl" style="margin-bottom:0">Marseille — 8 secteurs + ville</div>
+        <div style="font-size:11px;color:var(--tx3);background:var(--surf2);border:1px solid var(--bd);border-radius:3px;padding:6px 9px;line-height:1.5">
+          Saisir chaque secteur d'arrondissement, puis le résultat global de la ville.
+        </div>
+
+        <!-- Sélecteur secteur -->
+        <div>
+          <div style="font-size:11px;color:var(--tx2);margin-bottom:3px">Secteur</div>
+          <select class="fi" id="mrsSecteur">
+            <option value="">— Choisir un secteur —</option>
+            <option value="s1">Secteur 1 — 1er &amp; 7e arr. (25 sièges)</option>
+            <option value="s2">Secteur 2 — 2e &amp; 3e arr. (27 sièges)</option>
+            <option value="s3">Secteur 3 — 4e &amp; 5e arr. (33 sièges)</option>
+            <option value="s4">Secteur 4 — 6e &amp; 8e arr. (42 sièges)</option>
+            <option value="s5">Secteur 5 — 9e &amp; 10e arr. (47 sièges)</option>
+            <option value="s6">Secteur 6 — 11e &amp; 12e arr. (43 sièges)</option>
+            <option value="s7">Secteur 7 — 13e &amp; 14e arr. (53 sièges)</option>
+            <option value="s8">Secteur 8 — 15e &amp; 16e arr. (33 sièges)</option>
+          </select>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--tx2);margin-bottom:3px">Nuance du secteur</div>
+          <select class="fi" id="mrsNuance"><option value="">— Choisir —</option></select>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--tx2);margin-bottom:3px">Tête de liste élue</div>
+          <input type="text" class="fi" id="mrsMaire" placeholder="Nom Prénom…">
+        </div>
+        <div class="row2">
+          <div>
+            <div style="font-size:11px;color:var(--tx2);margin-bottom:3px">% voix</div>
+            <input type="number" class="fi" id="mrsPct" placeholder="52.4" min="0" max="100" step="0.1">
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--tx2);margin-bottom:3px">Tour</div>
+            <select class="fi" id="mrsTour">
+              <option value="2">2ème tour</option>
+              <option value="1">1er tour</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn-v" id="mrsValSecteur">✓ Enregistrer ce secteur</button>
+
+        <!-- Résumé secteurs saisis -->
+        <div id="mrsSummary" style="display:none;flex-direction:column;gap:2px">
+          <div class="slbl" style="margin:4px 0 3px">Secteurs saisis</div>
+          <div id="mrsSummaryList"></div>
+        </div>
+
+        <div style="height:1px;background:var(--bd);margin:2px 0"></div>
+
+        <!-- Résultat global ville -->
+        <div class="slbl" style="margin-bottom:0">Résultat global — Ville de Marseille</div>
+        <div>
+          <div style="font-size:11px;color:var(--tx2);margin-bottom:3px">Nuance du maire élu</div>
+          <select class="fi" id="mrsGlobalNuance"><option value="">— Choisir —</option></select>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--tx2);margin-bottom:3px">Maire élu·e (ville)</div>
+          <input type="text" class="fi" id="mrsGlobalMaire" placeholder="Nom Prénom…">
+        </div>
+        <div class="row2">
+          <div>
+            <div style="font-size:11px;color:var(--tx2);margin-bottom:3px">% voix</div>
+            <input type="number" class="fi" id="mrsGlobalPct" placeholder="38.3" min="0" max="100" step="0.1">
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--tx2);margin-bottom:3px">Tour</div>
+            <select class="fi" id="mrsGlobalTour">
+              <option value="2">2ème tour</option>
+              <option value="1">1er tour</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn-v" id="mrsValGlobal">✓ Enregistrer la ville</button>
+      </div>
+    </div>
+
+    <!-- LOG -->
+    <div class="sp" id="p-log" style="gap:4px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div class="slbl">Journal des saisies</div>
+        <button class="btn-del" style="width:auto;padding:2px 8px;font-size:10px" onclick="clearLog()">Effacer</button>
+      </div>
+      <div id="logList"><span style="font-size:11px;color:var(--tx3)">Aucune saisie encore.</span></div>
+    </div>
+
+    <!-- BASCULES -->
+    <div class="sp" id="p-bascules">
+      <div class="slbl">Évolutions 2020 → 2026</div>
+      <div id="bascList"><span style="font-size:11px;color:var(--tx3)">Les basculements apparaîtront ici.</span></div>
+    </div>
+
+    <!-- LÉGENDE -->
+    <div class="sp" id="p-legende">
+      <div>
+        <div class="slbl">Nuances officielles (Ministère Intérieur)</div>
+        <div id="legGrid"></div>
+      </div>
+      <div style="height:1px;background:var(--bd)"></div>
+      <div>
+        <div class="slbl">Répartition 2026</div>
+        <div id="progWrap"><span style="font-size:11px;color:var(--tx3)">Aucune donnée</span></div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<div class="tip" id="tip">
+  <div class="tip-nom" id="tNom"></div>
+  <div class="tr" id="tMaireRow"><span class="tl">Élu·e</span><span class="tv" id="tMaire"></span></div>
+  <div class="tr" id="tListeRow"><span class="tl">Liste</span><span class="tv" id="tListe" style="font-size:11px"></span></div>
+  <div class="tr" id="tPctRow"><span class="tl">Score</span><span class="tv" id="tPct"></span></div>
+  <div class="tr" id="tTourRow"><span class="tl">Tour</span><span class="tv" id="tTour"></span></div>
+  <div id="tBadge"></div>
+  <div class="tip-sep" id="tSep1" style="display:none"></div>
+  <div class="tip-basc" id="tBasc" style="display:none">
+    <div class="tip-basc-row">
+      <span style="font-size:10px;color:var(--tx3);width:34px">2020</span>
+      <span id="tB20"></span>
+    </div>
+    <div class="tip-basc-row">
+      <span style="font-size:10px;color:var(--tx3);width:34px">2026</span>
+      <span id="tB26"></span>
+    </div>
+    <div id="tBascStatus" style="font-size:11px;font-weight:600;margin-top:3px"></div>
+  </div>
+</div>
+
+<div class="notif" id="notif"></div>
+
+<script>
+'use strict';
+// ── Fonctions globales accessibles depuis les onclick HTML ────────────────────
+function openModal(id){
+  const el=document.getElementById(id);
+  if(el) el.classList.add('on');
+}
+function closeModal(id){
+  const el=document.getElementById(id);
+  if(el) el.classList.remove('on');
+}
+// Exposer sur window pour les onclick= dans le HTML
+window.openModal=openModal;
+window.closeModal=closeModal;
+// ════════════════════════════════════════════════════════
+// NUANCES OFFICIELLES 2026 (source: resultats-elections.interieur.gouv.fr)
+// ════════════════════════════════════════════════════════
+const NUANCES = [
+  // Bloc Extrême gauche
+  {c:'LEXG',l:"Extrême gauche",               col:'#6b0f0f',bloc:'EXG'},
+  {c:'LFI', l:"La France Insoumise",           col:'#b5003b',bloc:'EXG'},
+  // Bloc Gauche
+  {c:'LCOM',l:"Parti Communiste Français",     col:'#d63031',bloc:'GAU'},
+  {c:'LSOC',l:"Parti Socialiste",              col:'#e84393',bloc:'GAU'},
+  {c:'LVEC',l:"Les Écologistes",               col:'#00a86b',bloc:'GAU'},
+  {c:'LUG', l:"Union à gauche",                col:'#e65c00',bloc:'GAU'},
+  {c:'LDVG',l:"Divers gauche",                 col:'#fd79a8',bloc:'GAU'},
+  // Bloc Divers
+  {c:'LECO',l:"Écologiste",                    col:'#27ae60',bloc:'DIV'},
+  {c:'LREG',l:"Régionaliste",                  col:'#a29bfe',bloc:'DIV'},
+  {c:'LDIV',l:"Divers",                        col:'#636e72',bloc:'DIV'},
+  // Bloc Centre
+  {c:'LREN',l:"Renaissance",                   col:'#f39c12',bloc:'CENT'},
+  {c:'LMDM',l:"MoDem",                         col:'#d35400',bloc:'CENT'},
+  {c:'LHOR',l:"Horizons",                      col:'#e67e22',bloc:'CENT'},
+  {c:'LUDI',l:"UDI",                           col:'#fdcb6e',bloc:'CENT'},
+  {c:'LUC', l:"Union au centre",               col:'#f0c040',bloc:'CENT'},
+  {c:'LDVC',l:"Divers centre",                 col:'#c8a800',bloc:'CENT'},
+  // Bloc Droite
+  {c:'LLR', l:"Les Républicains",              col:'#2980b9',bloc:'DTE'},
+  {c:'LUD', l:"Union à droite",                col:'#1a5276',bloc:'DTE'},
+  {c:'LDVD',l:"Divers droite",                 col:'#5dade2',bloc:'DTE'},
+  {c:'LDSV',l:"Droite souverainiste",          col:'#1abc9c',bloc:'DTE'},
+  // Bloc Extrême droite
+  {c:'LUDR',l:"Union des droites (UDR)",       col:'#0d3b8e',bloc:'EXD'},
+  {c:'LRN', l:"Rassemblement National",        col:'#0a2463',bloc:'EXD'},
+  {c:'LREC',l:"Reconquête !",                  col:'#071a4a',bloc:'EXD'},
+  {c:'LUXD',l:"Union extrême droite",          col:'#050e2b',bloc:'EXD'},
+  {c:'LEXD',l:"Extrême droite",                col:'#020814',bloc:'EXD'},
+];
+const NM={};
+NUANCES.forEach(n=>NM[n.c]=n);
+
+// Bloc de chaque nuance (pour détection de basculement inter-bloc)
+function getBloc(nuance){
+  const n=NM[nuance];
+  return n?n.bloc:null;
+}
+
+// Normalise la correspondance 2020→2026 avant comparaison de bloc
+function n20c(c){ return M20[c]||c; }
+
+// Reconduction : même nom de maire (insensible à la casse, trim)
+function memeCandidat(maire20, maire26){
+  if(!maire20||!maire26) return false;
+  const n1=maire20.toLowerCase().trim().replace(/[-']/g,' ');
+  const n2=maire26.toLowerCase().trim().replace(/[-']/g,' ');
+  // Compare les tokens (prenom/nom dans n'importe quel ordre)
+  const t1=new Set(n1.split(/\s+/).filter(s=>s.length>2));
+  const t2=new Set(n2.split(/\s+/).filter(s=>s.length>2));
+  let matches=0;
+  t1.forEach(t=>{if(t2.has(t))matches++;});
+  return matches>=2; // au moins 2 tokens communs (prénom + nom)
+}
+
+// Basculement = changement de BLOC (pas juste de nuance)
+function estBasculement(nuance20, nuance26, maire20, maire26){
+  const n20=n20c(nuance20);
+  const b20=getBloc(n20);
+  const b26=getBloc(nuance26);
+  if(!b20||!b26) return false;
+  // Même candidat → jamais un basculement, quelle que soit la nuance
+  if(memeCandidat(maire20, maire26)) return false;
+  // Même bloc → pas un basculement
+  return b20!==b26;
+}
+NUANCES.forEach(n=>NM[n.c]=n);
+
+// Correspondance nuances 2020→2026
+const M20={LUD:'LUD',LUG:'LUG',LREM:'LREN',LLR:'LLR',LRN:'LRN',
+  LDVD:'LDVD',LDVC:'LDVC',LDVG:'LDVG',LDIV:'LDIV',LCOM:'LCOM',
+  LECO:'LECO',LEXD:'LEXD',LPS:'LSOC',LEXG:'LEXG'};
+
+// ════════════════════════════════════════════════════════
+// DONNÉES 2026 1ER TOUR — extraites du PDF officiel (15/03/2026)
+// 76 communes élues directement — nuances vérifiées commune par commune
+// LDIV = Divers : petites communes sans nuance officielle attribuée par le Ministère
+// ════════════════════════════════════════════════════════
+const D26_T1 = {
+  '13002':{nuance:'LDVD',maire:'Lionel de Cala',               pct:75.8, tour:1},  // Allauch
+  '13003':{nuance:'LDIV',maire:'Catherine Moyemont Gaildry',   pct:52.7, tour:1},  // Alleins
+  '13006':{nuance:'LDIV',maire:'Lionel Escoffier',             pct:79.4, tour:1},  // Aureille
+  '13007':{nuance:'LDVD',maire:'Véronique Miquelly',           pct:61.1, tour:1},  // Auriol
+  '13010':{nuance:'LDVD',maire:'Michel Blanc',                 pct:61.1, tour:1},  // Barbentane
+  '13013':{nuance:'LDIV',maire:'Gilles Collomb',               pct:52.6, tour:1},  // Belcodène
+  '13015':{nuance:'LDVD',maire:'Mathieu Pietri',               pct:61.8, tour:1},  // Bouc-Bel-Air
+  '13016':{nuance:'LDVD',maire:'Ambrozio Dolfi',               pct:51.7, tour:1},  // La Bouilladisse
+  '13017':{nuance:'LDIV',maire:'Jérémie Becciu',               pct:100.0,tour:1},  // Boulbon (liste unique)
+  '13018':{nuance:'LDVD',maire:'Gilles Mourgues',              pct:70.9, tour:1},  // Cabannes
+  '13019':{nuance:'LDVD',maire:'Amapola Ventron',              pct:64.4, tour:1},  // Cabriès
+  '13020':{nuance:'LDIV',maire:'Serge Perottino',              pct:100.0,tour:1},  // Cadolive (liste unique)
+  '13022':{nuance:'LDVD',maire:'Danielle Milon',               pct:53.7, tour:1},  // Cassis
+  '13023':{nuance:'LDVD',maire:'Patrick Ghigonetto',           pct:74.8, tour:1},  // Ceyreste
+  '13024':{nuance:'LDIV',maire:'Christophe Hocmard',           pct:52.2, tour:1},  // Charleval
+  '13025':{nuance:'LDIV',maire:'Michel Boulan',                pct:100.0,tour:1},  // Châteauneuf-le-Rouge
+  '13028':{nuance:'LDVD',maire:'Alexandre Doriol',             pct:57.3, tour:1},  // La Ciotat
+  '13029':{nuance:'LDIV',maire:'Daniel Gagnon',                pct:59.0, tour:1},  // Cornillon-Confoux
+  '13030':{nuance:'LDVD',maire:'Bernard Destrost',             pct:68.8, tour:1},  // Cuges-les-Pins
+  '13031':{nuance:'LDVC',maire:'Michel Lan',                   pct:61.8, tour:1},  // La Destrousse
+  '13033':{nuance:'LDVG',maire:'Michel Illac',                 pct:52.0, tour:1},  // Ensuès-la-Redonne
+  '13034':{nuance:'LDIV',maire:'Aline Pelissier',              pct:100.0,tour:1},  // Eygalières (liste unique)
+  '13036':{nuance:'LDVC',maire:'Michel Gavanon',               pct:50.8, tour:1},  // Eyragues
+  '13038':{nuance:'LDVG',maire:'Gérard Garnier',               pct:53.4, tour:1},  // Fontvieille
+  '13040':{nuance:'LDVC',maire:'Béatrice Bonfillon',           pct:76.0, tour:1},  // Fuveau
+  '13042':{nuance:'LDVD',maire:'Roland Giberti',               pct:80.3, tour:1},  // Gémenos
+  '13043':{nuance:'LDVD',maire:'Jérôme Gouiran',               pct:64.9, tour:1},  // Gignac-la-Nerthe
+  '13044':{nuance:'LDVD',maire:'Philippe Leandri',             pct:100.0,tour:1},  // Grans (liste unique)
+  '13045':{nuance:'LDVD',maire:'Michel Pecout',                pct:100.0,tour:1},  // Graveson (liste unique)
+  '13046':{nuance:'LDVG',maire:'Hélène Gaillard',              pct:52.0, tour:1},  // Gréasque
+  '13048':{nuance:'LDVC',maire:'Eric Garcin',                  pct:100.0,tour:1},  // Jouques (liste unique)
+  '13049':{nuance:'LDIV',maire:'Christian Nervi',              pct:100.0,tour:1},  // Lamanon (liste unique)
+  '13051':{nuance:'LEXD',maire:'Julie Arias',                  pct:64.8, tour:1},  // Lançon-Provence
+  '13052':{nuance:'LDIV',maire:'Éric Lecoffre',                pct:100.0,tour:1},  // Maillane (liste unique)
+  '13053':{nuance:'LDVD',maire:'Dimitri Farro',                pct:55.2, tour:1},  // Mallemort
+  '13054':{nuance:'LDVD',maire:'Eric Le Disses',               pct:77.0, tour:1},  // Marignane
+  '13058':{nuance:'LDIV',maire:'Jean-Christophe Carré',        pct:53.6, tour:1},  // Maussane-les-Alpilles
+  '13060':{nuance:'LDVD',maire:'Jean-Pascal Gournes',          pct:64.1, tour:1},  // Meyreuil
+  '13062':{nuance:'LDVC',maire:'Georges Cristiani',            pct:73.9, tour:1},  // Mimet
+  '13063':{nuance:'LDVG',maire:'Frédéric Vigouroux',           pct:57.5, tour:1},  // Miramas
+  '13064':{nuance:'LDIV',maire:'Corinne Chabaud',              pct:100.0,tour:1},  // Mollégès (liste unique)
+  '13065':{nuance:'LDVD',maire:'Pascal Vianes',                pct:50.9, tour:1},  // Mouriès
+  '13067':{nuance:'LDIV',maire:'Angélique Ytier Clareton',     pct:51.0, tour:1},  // Orgon
+  '13068':{nuance:'LDIV',maire:'Pascale Licari',               pct:64.2, tour:1},  // Paradou
+  '13069':{nuance:'LDVD',maire:'Pascal Montécot',              pct:67.7, tour:1},  // Pélissanne
+  '13072':{nuance:'LDVD',maire:'Christian Burle',              pct:67.2, tour:1},  // Peynier
+  '13073':{nuance:'LDVD',maire:'Frédéric Gibelot',             pct:100.0,tour:1},  // Peypin (liste unique)
+  '13074':{nuance:'LDVC',maire:'Thomas Arcamone',              pct:100.0,tour:1},  // Peyrolles-en-Provence
+  '13075':{nuance:'LDVD',maire:'Laurent Simon',                pct:64.8, tour:1},  // Plan-de-Cuques
+  '13076':{nuance:'LDVD',maire:'Jérôme Guichard',              pct:100.0,tour:1},  // Plan-d\'Orgon (liste unique)
+  '13077':{nuance:'LCOM',maire:'Laurent Belsola',              pct:70.5, tour:1},  // Port-de-Bouc
+  '13078':{nuance:'LDVC',maire:'Martial Alvarez',              pct:62.9, tour:1},  // Port-Saint-Louis-du-Rhône
+  '13079':{nuance:'LDIV',maire:'Sébastien Leccia',             pct:64.1, tour:1},  // Puyloubier
+  '13080':{nuance:'LDVG',maire:'Jean-David Ciot',              pct:100.0,tour:1},  // Le Puy-Sainte-Réparade
+  '13082':{nuance:'LDVC',maire:'Cédric Orofino',               pct:54.8, tour:1},  // Rognes
+  '13083':{nuance:'LDVC',maire:'Yves Picarda',                 pct:100.0,tour:1},  // Rognonas (liste unique)
+  '13084':{nuance:'LDVC',maire:'Jean-Pierre Serrus',           pct:54.6, tour:1},  // La Roque-d\'Anthéron
+  '13085':{nuance:'LDVC',maire:'Marc Del Grazia',              pct:62.6, tour:1},  // Roquefort-la-Bédoule
+  '13087':{nuance:'LDVC',maire:'Philippe Pignon',              pct:60.9, tour:1},  // Rousset
+  '13088':{nuance:'LDVG',maire:'Paul Sabatino',                pct:77.9, tour:1},  // Le Rove
+  '13089':{nuance:'LDIV',maire:'Jean-Luc Perin',               pct:68.7, tour:1},  // Saint-Andiol
+  '13091':{nuance:'LDVC',maire:'Joël Levi-Valensi',            pct:100.0,tour:1},  // Saint-Cannat (liste unique)
+  '13092':{nuance:'LDVC',maire:'Magali Ramos',                 pct:100.0,tour:1},  // Saint-Chamas (liste unique)
+  '13094':{nuance:'LDIV',maire:'Jean Mangion',                 pct:100.0,tour:1},  // Saint-Étienne-du-Grès (liste unique)
+  '13097':{nuance:'LDVC',maire:'Séverine Dellanegra',          pct:64.9, tour:1},  // Saint-Martin-de-Crau
+  '13098':{nuance:'LDVD',maire:'Vincent Goyet',                pct:100.0,tour:1},  // Saint-Mitre-les-Remparts
+  '13103':{nuance:'LLR', maire:'Nicolas Isnard',               pct:74.7, tour:1},  // Salon-de-Provence
+  '13106':{nuance:'LUG', maire:'André Molino',                 pct:60.6, tour:1},  // Septèmes-les-Vallons
+  '13107':{nuance:'LDVD',maire:'Philippe Ardhuin',             pct:54.2, tour:1},  // Simiane-Collongue
+  '13110':{nuance:'LDVD',maire:'Pascal Chauvin',               pct:59.8, tour:1},  // Trets
+  '13111':{nuance:'LDIV',maire:'Philippe Charrin',             pct:60.2, tour:1},  // Vauvenargues
+  '13113':{nuance:'LDVD',maire:'Arnaud Mercier',               pct:80.5, tour:1},  // Venelles
+  '13114':{nuance:'LDVD',maire:'Frédéric Vigouroux',           pct:60.9, tour:1},  // Ventabren
+  '13115':{nuance:'LDIV',maire:'Anne Reybaud Decroix',         pct:54.1, tour:1},  // Vernègues
+  '13118':{nuance:'LDVD',maire:'Guy Barret',                   pct:62.0, tour:1},  // Coudoux
+  '13119':{nuance:'LDVD',maire:'Nicolas Bouland',              pct:61.2, tour:1},  // Carnoux-en-Provence
+  // 10 communes à scrutin plurinominal/liste unique — non détectées initialement
+  '13008':{nuance:'LDIV',maire:'Emilie Frutoso Bertero',  pct:49.88,tour:1},  // Aurons
+  '13009':{nuance:'LDIV',maire:'Franck Santos',           pct:71.13,tour:1},  // La Barben
+  '13011':{nuance:'LDIV',maire:'Anne Poniatowski',        pct:100.0,tour:1},  // Les Baux-de-Provence
+  '13012':{nuance:'LDIV',maire:'Patrick Vieilledent',     pct:33.96,tour:1},  // Beaurecueil
+  '13057':{nuance:'LDIV',maire:'Laurent Geslin',          pct:100.0,tour:1},  // Mas-Blanc-des-Alpilles
+  '13061':{nuance:'LDIV',maire:'Cédric Chanut',           pct:39.77,tour:1},  // Saint-Pierre-de-Mézoargues
+  '13090':{nuance:'LDIV',maire:'Christian Delavet',       pct:100.0,tour:1},  // Saint-Antonin-sur-Bayon
+  '13093':{nuance:'LDIV',maire:'Fabienne Quievreux',      pct:28.31,tour:1},  // Saint-Estève-Janson
+  '13099':{nuance:'LDIV',maire:'Romain Buchaut',          pct:68.36,tour:1},  // Saint-Paul-lès-Durance
+  '13116':{nuance:'LDIV',maire:'Jean-Marc Martin-Teissere',pct:100.0,tour:1}, // Verquières
+};
+
+// 33 communes au 2nd tour (22 mars 2026) — liste officielle
+// Marseille = 1 code INSEE (13055), 8 secteurs à saisir individuellement
+const T2_CODES = new Set([
+  '13001','13032','13035','13037','13041','13050','13059','13071',
+  '13095','13105','13109','13112',
+  '13004','13027','13066','13100','13096','13108',
+  '13014','13021','13026','13039','13047','13056','13081','13102','13104','13117',
+  '13005','13055','13070','13086','13101',
+]);
+
+// ════════════════════════════════════════════════════════
+// DONNÉES 2020 — Sources: PDF officiel 1er & 2ème tour + RNE
+// Nuances converties au référentiel 2026
+// note:'< 3500 hab' = commune non nuancée officiellement par le Ministère
+// ════════════════════════════════════════════════════════
+const D20={
+  // ── T2 2020 (résultats PDFs officiels) ────────────────
+  '13001':{maire:'Maryse Joissains-Masini',nuance:'LUD', liste:"La Passion d\'Aix",pct:43.5,tour:2},
+  '13002':{maire:'Lionel de Cala',         nuance:'LDVD',liste:'Générations Allauch',pct:59.7,tour:2},
+  '13004':{maire:'Patrick de Carolis',     nuance:'LDVC',liste:'Pour le Grand Arles',pct:57.2,tour:2},
+  '13005':{maire:'Gérard Gazay',           nuance:'LLR', liste:'Aubagne Ensemble',pct:48.0,tour:2},
+  '13019':{maire:'Amapola Ventron',        nuance:'LECO',liste:'Un Nouveau Souffle',pct:36.5,tour:2},
+  '13021':{maire:'René-Francis Carpentier',nuance:'LDVD',liste:'Unis pour Carry',pct:47.4,tour:2},
+  '13028':{maire:'Patrick Boré',           nuance:'LLR', liste:"Cap sur l\'Avenir",pct:46.2,tour:2},
+  '13040':{maire:'Béatrice Bonfillon',     nuance:'LDVC',liste:'Chiavassa Fuveau Toujours',pct:52.7,tour:2},
+  '13041':{maire:'Hervé Granier',          nuance:'LLR', liste:'Nouveau Souffle',pct:35.7,tour:2},
+  '13046':{maire:'Michel Ruiz',            nuance:'LDVC',liste:'La Dynamique Continue',pct:52.7,tour:2},
+  '13048':{maire:'Eric Garcin',            nuance:'LDIV',liste:'Pourquoi pas à Jouques',pct:59.5,tour:2,note:'< 3500 hab'},
+  '13049':{maire:'Christian Nervi',        nuance:'LDIV',liste:'Agir pour Lamanon',pct:53.6,tour:2,note:'< 3500 hab'},
+  '13050':{maire:'Bernard Ramond',         nuance:'LUD', liste:'Pour que vive Lambesc',pct:56.7,tour:2},
+  '13055':{maire:'Benoît Payan',           nuance:'LUG', liste:'Printemps Marseillais',pct:38.3,tour:2},
+  '13067':{maire:'Serge Portal',           nuance:'LDIV',liste:'Orgon 2020 - Cap Avenir',pct:54.1,tour:2,note:'< 3500 hab'},
+  '13070':{maire:'Christine Capdeville',   nuance:'LUG', liste:'Un Village Solidaire',pct:52.1,tour:2},
+  '13071':{maire:'Michel Amiel',           nuance:'LDVC',liste:'100% pour les Pennes',pct:44.4,tour:2},
+  '13073':{maire:'Jean-Marie Léonardis',   nuance:'LDVD',liste:'Ensemble pour Peypin',pct:50.8,tour:2},
+  '13075':{maire:'Laurent Simon',          nuance:'LLR', liste:'Plan-de-Cuques au Cœur',pct:52.2,tour:2},
+  '13082':{maire:'Jean-François Corno',    nuance:'LDVD',liste:'Rognes à Venir',pct:36.4,tour:2},
+  '13085':{maire:'Marc Del Grazia',        nuance:'LDVC',liste:'Rassemblement Avenir',pct:50.6,tour:2},
+  '13096':{maire:'Roland Chassain',        nuance:'LDIV',liste:'Les Saintes Nous Aimons',pct:52.5,tour:2},
+  '13098':{maire:'Vincent Goyet',          nuance:'LDVD',liste:'Saint-Mitre-en Vie !',pct:54.4,tour:2},
+  '13100':{maire:'Hervé Chérubini',        nuance:'LDVG',liste:'Défendons Notre Histoire',pct:50.1,tour:2},
+  '13104':{maire:'Maxime Marchand',        nuance:'LECO',liste:'Sausset Réuni',pct:59.5,tour:2},
+  '13108':{maire:'Lucien Limousin',        nuance:'LDVD',liste:'Ensemble, Tarascon',pct:48.1,tour:2},
+  '13109':{maire:'Vincent Languille',      nuance:'LDIV',liste:"Pour l\'Avenir",pct:62.8,tour:2,note:'< 3500 hab'},
+  '13110':{maire:'Pascal Chauvin',         nuance:'LDVD',liste:'Nouvel Élan pour Trets',pct:47.1,tour:2},
+  '13112':{maire:'Yannick Guérin',         nuance:'LDVG',liste:"L\'Aventure Citoyenne",pct:41.8,tour:2},
+  // ── T1 2020 (communes élues dès le 1er tour) ──────────
+  '13003':{maire:'Philippe Grange',        nuance:'LDIV',pct:66.1,tour:1,note:'< 3500 hab'},
+  '13006':{maire:'Lionel Escoffier',       nuance:'LDIV',pct:68.5,tour:1,note:'< 3500 hab'},
+  '13007':{maire:'Véronique Miquelly',     nuance:'LDVD',pct:63.2,tour:1},
+  '13010':{maire:'Jean-Christophe Daudet', nuance:'LDVD',pct:60.7,tour:1},
+  '13013':{maire:'Patrick Pin',            nuance:'LDIV',pct:59.6,tour:1,note:'< 3500 hab'},
+  '13014':{maire:'Mario Martinet',         nuance:'LUG', pct:50.0,tour:1},
+  '13015':{maire:'Richard Mallie',         nuance:'LLR', pct:63.2,tour:1},
+  '13016':{maire:'José Morales',           nuance:'LDVG',pct:63.6,tour:1},
+  '13017':{maire:'Christian Gilles',       nuance:'LDIV',pct:55.6,tour:1,note:'< 3500 hab'},
+  '13018':{maire:'Nathalie Girard',        nuance:'LDVD',pct:62.7,tour:1},
+  '13020':{maire:'Serge Perottino',        nuance:'LDIV',pct:100.0,tour:1,note:'< 3500 hab'},
+  '13022':{maire:'Danielle Milon',         nuance:'LDVD',pct:61.8,tour:1},
+  '13023':{maire:'Patrick Ghigonetto',     nuance:'LDVD',pct:66.0,tour:1},
+  '13024':{maire:'Yves Wigt',              nuance:'LDIV',pct:63.3,tour:1,note:'< 3500 hab'},
+  '13025':{maire:'Michel Boulan',          nuance:'LDIV',pct:100.0,tour:1,note:'< 3500 hab'},
+  '13026':{maire:'Roland Mouren',          nuance:'LDVD',pct:50.6,tour:1},
+  '13027':{maire:'Marcel Martel',          nuance:'LDVD',pct:53.6,tour:1},
+  '13029':{maire:'Daniel Gagnon',          nuance:'LDIV',pct:100.0,tour:1,note:'< 3500 hab'},
+  '13030':{maire:'Bernard Destrost',       nuance:'LDVD',pct:62.2,tour:1},
+  '13031':{maire:'Michel Lan',             nuance:'LDVC',pct:100.0,tour:1},
+  '13032':{maire:'Robert Dagorne',         nuance:'LDVD',pct:56.5,tour:1},
+  '13033':{maire:'Michel Illac',           nuance:'LDVG',pct:68.5,tour:1},
+  '13034':{maire:'Aline Pélissier',        nuance:'LDIV',pct:100.0,tour:1,note:'< 3500 hab'},
+  '13035':{maire:'Henri Pons',             nuance:'LDVC',pct:64.1,tour:1},
+  '13036':{maire:'Max Gilles',             nuance:'LDVD',pct:63.8,tour:1},
+  '13037':{maire:'Olivier Guirou',         nuance:'LDVG',pct:71.0,tour:1},
+  '13038':{maire:'Gérard Garnier',         nuance:'LDVG',pct:100.0,tour:1},
+  '13039':{maire:'Jean Hetsch',            nuance:'LSOC',pct:58.5,tour:1},
+  '13042':{maire:'Roland Giberti',         nuance:'LDVD',pct:81.1,tour:1},
+  '13043':{maire:'Christian Amiraty',      nuance:'LDVC',pct:52.4,tour:1},
+  '13044':{maire:'Yves Vidal',             nuance:'LDVG',pct:73.7,tour:1},
+  '13045':{maire:'Michel Pécout',          nuance:'LDVD',pct:82.0,tour:1},
+  '13047':{maire:'François Bernardini',    nuance:'LDVG',pct:54.8,tour:1},
+  '13051':{maire:'Michel Mille',           nuance:'LDVD',pct:76.1,tour:1},
+  '13052':{maire:'Eric Lecoffre',          nuance:'LDIV',pct:58.8,tour:1,note:'< 3500 hab'},
+  '13053':{maire:'Hélène Gente-Ceaglio',   nuance:'LDVG',pct:50.8,tour:1},
+  '13054':{maire:'Eric Le Disses',         nuance:'LDVD',pct:70.4,tour:1},
+  '13056':{maire:'Gaby Charroux',          nuance:'LCOM',pct:60.9,tour:1},
+  '13058':{maire:'Jean-Christophe Carré',  nuance:'LDIV',pct:63.0,tour:1,note:'< 3500 hab'},
+  '13059':{maire:'Fabrice Poussardin',     nuance:'LDIV',pct:56.4,tour:1,note:'< 3500 hab'},
+  '13060':{maire:'Jean-Pascal Gournes',    nuance:'LDVD',pct:60.9,tour:1},
+  '13062':{maire:'Georges Cristiani',      nuance:'LDIV',pct:100.0,tour:1,note:'< 3500 hab'},
+  '13063':{maire:'Frédéric Vigouroux',     nuance:'LSOC',pct:66.1,tour:1},
+  '13064':{maire:'Corinne Chabaud',        nuance:'LDIV',pct:63.5,tour:1,note:'< 3500 hab'},
+  '13065':{maire:'Alice Roggiero',         nuance:'LDIV',pct:65.2,tour:1,note:'< 3500 hab'},
+  '13066':{maire:'Georges Jullien',        nuance:'LDVG',pct:52.0,tour:1},
+  '13068':{maire:'Pascale Licari',         nuance:'LDIV',pct:100.0,tour:1,note:'< 3500 hab'},
+  '13069':{maire:'Pascal Montécot',        nuance:'LLR', pct:52.5,tour:1},
+  '13072':{maire:'Christian Burle',        nuance:'LDIV',pct:100.0,tour:1,note:'< 3500 hab'},
+  '13074':{maire:'Olivier Fregeac',        nuance:'LLR', pct:82.0,tour:1},
+  '13076':{maire:'Jean-Louis Lepian',      nuance:'LDIV',pct:75.7,tour:1,note:'< 3500 hab'},
+  '13077':{maire:'Laurent Belsola',        nuance:'LCOM',pct:53.6,tour:1},
+  '13078':{maire:'Martial Alvarez',        nuance:'LDVG',pct:62.9,tour:1},
+  '13079':{maire:'Frédéric Guinieri',      nuance:'LDIV',pct:100.0,tour:1,note:'< 3500 hab'},
+  '13080':{maire:'Jean-David Ciot',        nuance:'LUG', pct:57.3,tour:1},
+  '13081':{maire:'Stéphane Le Rudulier',   nuance:'LDVD',pct:90.5,tour:1},
+  '13083':{maire:'Yves Picarda',           nuance:'LDVC',pct:100.0,tour:1},
+  '13084':{maire:'Jean-Pierre Serrus',     nuance:'LDVC',pct:65.9,tour:1},
+  '13086':{maire:'Yves Mesnard',           nuance:'LDVG',pct:53.2,tour:1},
+  '13087':{maire:'Jean-Louis Canal',       nuance:'LDVG',pct:100.0,tour:1},
+  '13088':{maire:'Georges Rosso',          nuance:'LCOM',pct:79.2,tour:1},
+  '13089':{maire:'Daniel Robert',          nuance:'LDIV',pct:100.0,tour:1,note:'< 3500 hab'},
+  '13091':{maire:'Jacky Gérard',           nuance:'LDVG',pct:69.2,tour:1},
+  '13092':{maire:'Didier Khelfa',          nuance:'LDVD',pct:88.5,tour:1},
+  '13094':{maire:'Jean Mangion',           nuance:'LDIV',pct:100.0,tour:1,note:'< 3500 hab'},
+  '13095':{maire:'Régis Martin',           nuance:'LDIV',pct:65.3,tour:1,note:'< 3500 hab'},
+  '13097':{maire:'Dominique Teixier',      nuance:'LDVG',pct:58.3,tour:1},
+  '13101':{maire:'Rémi Marcengo',          nuance:'LDIV',pct:73.0,tour:1,note:'< 3500 hab'},
+  '13102':{maire:'Claude Piccirillo',      nuance:'LLR', pct:60.2,tour:1},
+  '13103':{maire:'Nicolas Isnard',         nuance:'LLR', pct:69.3,tour:1},
+  '13105':{maire:'Philippe Ginoux',        nuance:'LDVD',pct:66.8,tour:1},
+  '13106':{maire:'André Molino',           nuance:'LCOM',pct:80.5,tour:1},
+  '13107':{maire:'Philippe Ardhuin',       nuance:'LLR', pct:51.6,tour:1},
+  '13111':{maire:'Philippe Charrin',       nuance:'LDIV',pct:100.0,tour:1,note:'< 3500 hab'},
+  '13113':{maire:'Arnaud Mercier',         nuance:'LUD', pct:76.4,tour:1},
+  '13114':{maire:'Claude Filippi',         nuance:'LLR', pct:60.7,tour:1},
+  '13115':{maire:'Anne Reybaud-Decroix',   nuance:'LDIV',pct:100.0,tour:1,note:'< 3500 hab'},
+  '13117':{maire:'Loïc Gachon',            nuance:'LSOC',pct:50.7,tour:1},
+  '13118':{maire:'Guy Barret',             nuance:'LDVD',pct:100.0,tour:1},
+  '13119':{maire:'Jean-Pierre Giorgi',     nuance:'LDVD',pct:67.6,tour:1},
+  // ── Communes non trouvées dans les PDFs (données partielles RNE) ──
+  '13008':{maire:'',nuance:'LDIV',note:'< 3500 hab'},
+  '13009':{maire:'',nuance:'LDIV',note:'< 3500 hab'},
+  '13011':{maire:'',nuance:'LDIV',note:'< 3500 hab'},
+  '13012':{maire:'Eglantine Rocchia',nuance:'LDIV',pct:38.6,tour:2,note:'< 3500 hab'},
+  '13057':{maire:'',nuance:'LDIV',note:'< 3500 hab'},
+  '13061':{maire:'',nuance:'LDIV',note:'< 3500 hab'},
+  '13093':{maire:'',nuance:'LDIV',note:'< 3500 hab'},
+  '13099':{maire:'',nuance:'LDVD'},
+  '13116':{maire:'',nuance:'LDIV',note:'< 3500 hab'},
+};
+
+// ════════════════════════════════════════════════════════
+// SECTEURS MARSEILLE — T1 2026 (PDF officiel 15/03/2026)
+// Résultats du 1er tour — tous les secteurs vont au 2nd tour
+// ════════════════════════════════════════════════════════
+const MRS_SECTEURS = {
+  's1':{label:'Secteur 1 — 1er & 7e arr.',  sieges:25, arr:'1er et 7e', t1:{leader:'Sophie Camard',nuance:'LUG',pct:43.3}, t2:true},
+  's2':{label:'Secteur 2 — 2e & 3e arr.',   sieges:27, arr:'2e et 3e',  t1:{leader:'Anthony Krehmeier',nuance:'LUG',pct:39.6}, t2:true},
+  's3':{label:'Secteur 3 — 4e & 5e arr.',   sieges:33, arr:'4e et 5e',  t1:{leader:'Didier Jau',nuance:'LUG',pct:38.9}, t2:true},
+  's4':{label:'Secteur 4 — 6e & 8e arr.',   sieges:42, arr:'6e et 8e',  t1:{leader:'Olivia Fortin',nuance:'LUG',pct:36.6}, t2:true},
+  's5':{label:'Secteur 5 — 9e & 10e arr.',  sieges:47, arr:'9e et 10e', t1:{leader:'Eléonore Bez',nuance:'LRN',pct:44.9}, t2:true},
+  's6':{label:'Secteur 6 — 11e & 12e arr.', sieges:43, arr:'11e et 12e',t1:{leader:'Olivier Rioult',nuance:'LRN',pct:43.8}, t2:true},
+  's7':{label:'Secteur 7 — 13e & 14e arr.', sieges:53, arr:'13e et 14e',t1:{leader:'Sandrine D\'Angio',nuance:'LRN',pct:39.8}, t2:true},
+  's8':{label:'Secteur 8 — 15e & 16e arr.', sieges:33, arr:'15e et 16e',t1:{leader:'Samia Ghali',nuance:'LUG',pct:37.0}, t2:true},
+};
+let R26_MRS = {}; // résultats 2nd tour secteurs
+
+// ════════════════════════════════════════════════════════
+// DONNÉES 2020 — 1ER TOUR (PDF officiel Ministère Intérieur)
+// Communes élues dès le 1er tour le 15 mars 2020
+// ════════════════════════════════════════════════════════
+const D20_T1 = {
+  '13003':{maire:'Philippe Grange',nuance:'LDIV',liste:'Alleins, Ensemble',pct:66.06,tour:1},
+  '13006':{maire:'Lionel Escoffier',nuance:'LDIV',liste:'Pour mon village',pct:68.55,tour:1},
+  '13007':{maire:'Véronique Miquelly',nuance:'LDVD',liste:'Auriol Ensemble',pct:63.19,tour:1},
+  '13008':{maire:'Olivier Stofati',nuance:'LDIV',liste:'',pct:0,tour:1},
+  '13009':{maire:'Laurent Lamotte',nuance:'LDIV',liste:'',pct:0,tour:1},
+  '13010':{maire:'Michel Blanc',nuance:'LDVD',liste:'Agir tous ensemble',pct:60.71,tour:1},
+  '13011':{maire:'Anne Poniatowski',nuance:'LDIV',liste:'',pct:0,tour:1},
+  '13013':{maire:'Patrick Pin',nuance:'LDIV',liste:'Bien vivre à Belcodène',pct:59.56,tour:1},
+  '13014':{maire:'Mario Martinet',nuance:'LUG',liste:'Berre Avenir',pct:50.05,tour:1},
+  '13015':{maire:'Richard Mallié',nuance:'LLR',liste:'Bouc avant tout',pct:63.24,tour:1},
+  '13016':{maire:'José Morales',nuance:'LDVG',liste:'Notre bien commun',pct:63.59,tour:1},
+  '13017':{maire:'Christian Gilles',nuance:'LDIV',liste:'Ensemble pour le village',pct:55.57,tour:1},
+  '13018':{maire:'Nathalie Girard',nuance:'LDVD',liste:'Vivons Cabannes',pct:62.7,tour:1},
+  '13020':{maire:'Serge Perottino',nuance:'LDIV',liste:'Pour un Cadolive gagnant',pct:100.0,tour:1},
+  '13022':{maire:'Danielle Milon',nuance:'LDVD',liste:'Notre parti, Cassis',pct:61.78,tour:1},
+  '13023':{maire:'Patrick Ghigonetto',nuance:'LDVD',liste:'Ambition Ceyreste',pct:65.97,tour:1},
+  '13024':{maire:'Yves Wigt',nuance:'LDIV',liste:"Pour l'avenir",pct:63.31,tour:1},
+  '13025':{maire:'Michel Boulan',nuance:'LDIV',liste:'Châteauneuf Passionnément',pct:100.0,tour:1},
+  '13026':{maire:'Roland Mouren',nuance:'LDVD',liste:'Ensemble, continuons',pct:50.63,tour:1},
+  '13027':{maire:'Marcel Martel',nuance:'LDVD',liste:'Châteaurenard avec vous',pct:53.64,tour:1},
+  '13029':{maire:'Daniel Gagnon',nuance:'LDIV',liste:'Cornillon Ensemble',pct:100.0,tour:1},
+  '13030':{maire:'Bernard Destrost',nuance:'LDVD',liste:'Cuges avenir',pct:62.21,tour:1},
+  '13031':{maire:'Michel Lan',nuance:'LDVC',liste:'Vivre la Destrousse',pct:100.0,tour:1},
+  '13032':{maire:'Robert Dagorne',nuance:'LDVD',liste:'Robert Dagorne Éguilles',pct:56.55,tour:1},
+  '13033':{maire:'Michel Illac',nuance:'LDVG',liste:'Poursuivons ensemble',pct:68.46,tour:1},
+  '13034':{maire:'Aline Pélissier',nuance:'LDIV',liste:"Eygalières, une passion",pct:100.0,tour:1},
+  '13035':{maire:'Henri Pons',nuance:'LDVC',liste:'Unis pour Eyguières',pct:64.11,tour:1},
+  '13036':{maire:'Max Gilles',nuance:'LDVD',liste:'Union pour le progrès',pct:63.83,tour:1},
+  '13037':{maire:'Olivier Guirou',nuance:'LDVG',liste:'La Fare ensemble',pct:71.0,tour:1},
+  '13038':{maire:'Gérard Garnier',nuance:'LDVG',liste:'Agir ensemble',pct:100.0,tour:1},
+  '13039':{maire:'Jean Hetsch',nuance:'LSOC',liste:"Fiers d'être Fosséens",pct:58.49,tour:1},
+  '13042':{maire:'Roland Giberti',nuance:'LDVD',liste:'Entente pour Gémenos',pct:81.14,tour:1},
+  '13043':{maire:'Christian Amiraty',nuance:'LDVC',liste:'Amiraty 2020',pct:52.42,tour:1},
+  '13044':{maire:'Yves Vidal',nuance:'LDVG',liste:'Grans à vivre ensemble',pct:73.68,tour:1},
+  '13045':{maire:'Michel Pécout',nuance:'LDVD',liste:'Graveson Passionnément',pct:81.95,tour:1},
+  '13047':{maire:'François Bernardini',nuance:'LDVG',liste:'Nous sommes Istres !',pct:54.8,tour:1},
+  '13051':{maire:'Michel Mille',nuance:'LDVD',liste:'En avant Lançon',pct:76.07,tour:1},
+  '13052':{maire:"Éric Lecoffre",nuance:'LDIV',liste:"L'expérience d'une équipe",pct:58.84,tour:1},
+  '13053':{maire:'Hélène Gente-Ceaglio',nuance:'LDVG',liste:'Continuons pour Mallemort',pct:50.75,tour:1},
+  '13054':{maire:'Eric Le Disses',nuance:'LDVD',liste:'Le meilleur est à venir',pct:70.42,tour:1},
+  '13056':{maire:'Gaby Charroux',nuance:'LCOM',liste:'Ensemble toujours + loin',pct:60.93,tour:1},
+  '13057':{maire:'Eric Eynaud',nuance:'LDIV',liste:'',pct:0,tour:1},
+  '13058':{maire:'Jean-Christophe Carré',nuance:'LDIV',liste:'Ensemble pour Maussane',pct:62.97,tour:1},
+  '13059':{maire:'Fabrice Poussardin',nuance:'LDIV',liste:"Meyrargues c'est vous",pct:56.37,tour:1},
+  '13060':{maire:'Jean-Pascal Gournes',nuance:'LDVD',liste:'Meyreuil demain',pct:60.88,tour:1},
+  '13061':{maire:'Laurie Pons',nuance:'LDIV',liste:'',pct:0,tour:1},
+  '13062':{maire:'Georges Cristiani',nuance:'LDIV',liste:"Mon parti, c'est Mimet",pct:100.0,tour:1},
+  '13063':{maire:'Frédéric Vigouroux',nuance:'LSOC',liste:'Pour Miramas',pct:66.07,tour:1},
+  '13064':{maire:'Corinne Chabaud',nuance:'LDIV',liste:'Mollégès Demain',pct:63.47,tour:1},
+  '13065':{maire:'Alice Roggiero',nuance:'LDIV',liste:'Continuons ensemble',pct:65.18,tour:1},
+  '13066':{maire:'Georges Jullien',nuance:'LDVG',liste:'Noves ambition partagée',pct:52.0,tour:1},
+  '13068':{maire:'Pascale Licari',nuance:'LDIV',liste:'Bien vivre ensemble',pct:100.0,tour:1},
+  '13069':{maire:'Pascal Montécot',nuance:'LLR',liste:'Ensemble vivons Pélissanne',pct:52.45,tour:1},
+  '13072':{maire:'Christian Burle',nuance:'LDIV',liste:'Ensemble Peynier',pct:100.0,tour:1},
+  '13074':{maire:'Olivier Frégeac',nuance:'LLR',liste:'Des actions, un avenir',pct:81.96,tour:1},
+  '13076':{maire:'Jean-Louis Lépian',nuance:'LDIV',liste:"Plan d'Orgon gagnant",pct:75.72,tour:1},
+  '13077':{maire:'Laurent Belsola',nuance:'LCOM',liste:'Port de Bouc toujours',pct:53.58,tour:1},
+  '13078':{maire:'Martial Alvarez',nuance:'LDVG',liste:'Port Saint Louis gagnant',pct:62.86,tour:1},
+  '13079':{maire:'Frédéric Guinieri',nuance:'LDIV',liste:'Bien vivre à Puyloubier',pct:100.0,tour:1},
+  '13080':{maire:'Jean-David Ciot',nuance:'LUG',liste:'Liste union républicaine',pct:57.27,tour:1},
+  '13081':{maire:'Stéphane Le Rudulier',nuance:'LDVD',liste:'Notre ville, ma passion',pct:90.5,tour:1},
+  '13083':{maire:'Yves Picarda',nuance:'LDVC',liste:"En pays d'Arles",pct:100.0,tour:1},
+  '13084':{maire:'Jean-Pierre Serrus',nuance:'LDVC',liste:'Esprit village 2020',pct:65.9,tour:1},
+  '13086':{maire:'Yves Mesnard',nuance:'LDVG',liste:'Ambition Roquevaire',pct:53.25,tour:1},
+  '13087':{maire:'Jean-Louis Canal',nuance:'LDVG',liste:'Rousset rassemblé',pct:100.0,tour:1},
+  '13088':{maire:'Georges Rosso',nuance:'LCOM',liste:'Ensemble pour le Rove',pct:79.24,tour:1},
+  '13089':{maire:'Daniel Robert',nuance:'LDIV',liste:'Continuons ensemble',pct:100.0,tour:1},
+  '13090':{maire:'Claude Pécout',nuance:'LDIV',liste:'',pct:0,tour:1},
+  '13091':{maire:'Jacky Gérard',nuance:'LDVG',liste:'Ensemble demain !',pct:69.17,tour:1},
+  '13092':{maire:'Didier Khelfa',nuance:'LDVD',liste:'Vivre Saint-Chamas',pct:88.48,tour:1},
+  '13093':{maire:'Jean-Claude Faradian',nuance:'LDIV',liste:'',pct:0,tour:1},
+  '13094':{maire:'Jean Mangion',nuance:'LDIV',liste:'Le Grès 2020',pct:100.0,tour:1},
+  '13095':{maire:'Régis Martin',nuance:'LDIV',liste:'Saint-Marc Ensemble',pct:65.32,tour:1},
+  '13097':{maire:'Dominique Teixier',nuance:'LDVG',liste:'Ensemble à Saint-Martin',pct:58.33,tour:1},
+  '13099':{maire:'Isabelle Gouégoux',nuance:'LDIV',liste:'',pct:0,tour:1},
+  '13102':{maire:'Claude Piccirillo',nuance:'LLR',liste:'Saint-Victoret Ensemble',pct:60.17,tour:1},
+  '13103':{maire:'Nicolas Isnard',nuance:'LLR',liste:'Réussir Salon',pct:69.27,tour:1},
+  '13106':{maire:'André Molino',nuance:'LCOM',liste:'Ensemble pour Septèmes',pct:80.54,tour:1},
+  '13107':{maire:'Philippe Ardhuin',nuance:'LLR',liste:'Simiane avance',pct:51.6,tour:1},
+  '13111':{maire:'Philippe Charrin',nuance:'LDIV',liste:'Vauvenargues une âme',pct:100.0,tour:1},
+  '13113':{maire:'Arnaud Mercier',nuance:'LUD',liste:'Venelles pour vous',pct:76.41,tour:1},
+  '13114':{maire:'Claude Filippi',nuance:'LLR',liste:'Ventabren à coeur',pct:60.68,tour:1},
+  '13115':{maire:'Anne Reybaud-Decroix',nuance:'LDIV',liste:'Ensemble Vernègues-Cazan',pct:100.0,tour:1},
+  '13116':{maire:'Jean-Marc Martin-Teissere',nuance:'LDIV',liste:'',pct:0,tour:1},
+  '13117':{maire:'Loïc Gachon',nuance:'LSOC',liste:'Vitrolles ensemble',pct:50.72,tour:1},
+  '13118':{maire:'Guy Barret',nuance:'LDVD',liste:'Vivons Coudoux',pct:100.0,tour:1},
+  '13119':{maire:'Jean-Pierre Giorgi',nuance:'LDVD',liste:'Ensemble pour Carnoux',pct:67.58,tour:1},
+};
+
+// g20 : retourne données 2020 (T2 si dispo, sinon T1)
+function g20(c){ return D20[c]||D20_T1[c]||null; }
+// Get the effective 2026 result (T1 pre-loaded OR manual T2 entry)
+function g26(c){ 
+  const r = R26[c] || D26_T1[c] || null;
+  // Enrichir avec données liste depuis D20_T1 si pas déjà présent
+  if(r && !r.liste) {
+    const t1ref = D20_T1[c];
+    if(t1ref?.liste) return {...r, liste: t1ref.liste};
+  }
+  return r;
+}
+function isT1(c){ return !!D26_T1[c] && !R26[c]; } // T1 data, not overridden
+function isT2pending(c){ return T2_CODES.has(c) && !R26[c]; }
+function isT2done(c){ return T2_CODES.has(c) && !!R26[c]; }
+
+// ════════════════════════════════════════════════════════
+// ÉTAT
+// ════════════════════════════════════════════════════════
+let R26 = {}; // only manual T2 entries (override D26_T1 if needed)
+let selCode = null;
+let communes = [];
+
+// ════════════════════════════════════════════════════════
+// THÈME
+// ════════════════════════════════════════════════════════
+let dark=true;
+document.getElementById('themeBtn').addEventListener('click',()=>{
+  dark=!dark;
+  document.documentElement.setAttribute('data-theme',dark?'dark':'light');
+  document.getElementById('themeBtn').textContent=dark?'☀':'☾';
+});
+
+// ════════════════════════════════════════════════════════
+// TABS
+// ════════════════════════════════════════════════════════
+document.querySelectorAll('.sbt').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('.sbt').forEach(x=>{x.classList.remove('on');x.style.color='';});
+    document.querySelectorAll('.sp').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+    document.getElementById('p-'+b.dataset.p).classList.add('on');
+    // Reset log badge
+    if(b.dataset.p==='log'){
+      const lb=document.getElementById('logTabBtn');
+      if(lb){lb.textContent='Log';lb.style.color='';}
+    }
+  });
+});
+
+// ════════════════════════════════════════════════════════
+// SELECT NUANCES
+// ════════════════════════════════════════════════════════
+const sel26=document.getElementById('nuanceSel');
+const blocs={
+  EXG:'⚡ Extrême gauche',GAU:'◀ Gauche',
+  DIV:'○ Divers',CENT:'● Centre',
+  DTE:'▶ Droite','EXD':'⚡ Extrême droite'
+};
+const tmp={};
+NUANCES.forEach(n=>{if(!tmp[n.bloc])tmp[n.bloc]=[];tmp[n.bloc].push(n);});
+['EXG','GAU','DIV','CENT','DTE','EXD'].forEach(b=>{
+  const og=document.createElement('optgroup');og.label=blocs[b];
+  (tmp[b]||[]).forEach(n=>{const o=document.createElement('option');o.value=n.c;o.textContent=`${n.c} — ${n.l}`;og.appendChild(o);});
+  sel26.appendChild(og);
+});
+
+// ════════════════════════════════════════════════════════
+// LÉGENDE
+// ════════════════════════════════════════════════════════
+const legGrid=document.getElementById('legGrid');
+NUANCES.forEach(n=>{
+  const d=document.createElement('div');d.className='lg-item';
+  d.innerHTML=`<div class="lg-dot" style="background:${n.col}"></div>
+    <span class="lg-code" style="color:${n.col}">${n.c}</span>
+    <span class="lg-lbl">${n.l}</span>
+    <span class="lg-cnt" id="lc-${n.c}" style="color:${n.col}">—</span>`;
+  legGrid.appendChild(d);
+});
+
+// ════════════════════════════════════════════════════════
+// GÉOJSON + PROJECTION
+// ════════════════════════════════════════════════════════
+async function loadGeo(){
+  const r=await fetch('https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements/13-bouches-du-rhone/communes-13-bouches-du-rhone.geojson');
+  return r.json();
+}
+
+function project(geo,W,H,pad=26){
+  let x0=1/0,x1=-1/0,y0=1/0,y1=-1/0;
+  const wk=c=>{if(typeof c[0]==='number'){x0=Math.min(x0,c[0]);x1=Math.max(x1,c[0]);y0=Math.min(y0,c[1]);y1=Math.max(y1,c[1]);}else c.forEach(wk);};
+  geo.features.forEach(f=>wk(f.geometry.coordinates));
+  const sx=(W-2*pad)/(x1-x0),sy=(H-2*pad)/(y1-y0),s=Math.min(sx,sy);
+  const ox=pad+((W-2*pad)-(x1-x0)*s)/2,oy=pad+((H-2*pad)-(y1-y0)*s)/2;
+  const pt=([lon,lat])=>[ox+(lon-x0)*s,oy+(y1-lat)*s];
+  const ring=cs=>cs.map((c,i)=>`${i?'L':'M'}${pt(c).map(v=>v.toFixed(2)).join(',')}`).join('')+'Z';
+  const poly=cs=>cs.map(ring).join(' ');
+  return geo.features.map(f=>{
+    const{code,nom}=f.properties;
+    let d='';
+    if(f.geometry.type==='Polygon')d=poly(f.geometry.coordinates);
+    else d=f.geometry.coordinates.map(poly).join(' ');
+    return{code,nom,d};
+  });
+}
+
+function getCol20(code){
+  const d=g20(code);if(!d)return 'var(--surf3)';
+  const n=NM[n20c(d.nuance)];return n?n.col:'#555';
+}
+
+function getCol26(code){
+  if(isT2pending(code)) return 'var(--surf3)'; // pending grey
+  const d=g26(code);if(!d)return 'var(--surf3)';
+  const n=NM[d.nuance];return n?n.col:'#555';
+}
+
+function drawMaps(paths){
+  ['20','26'].forEach(yr=>{
+    const svg=document.getElementById('map'+yr);
+    svg.innerHTML='';
+    const g=document.createElementNS('http://www.w3.org/2000/svg','g');
+    paths.forEach(({code,nom,d})=>{
+      const p=document.createElementNS('http://www.w3.org/2000/svg','path');
+      p.setAttribute('d',d);p.setAttribute('class','cp');
+      p.setAttribute('id',`p${yr}-${code}`);
+      const fill=yr==='20'?getCol20(code):getCol26(code);
+      p.setAttribute('fill',fill);
+      p.dataset.code=code;p.dataset.nom=nom;p.dataset.yr=yr;
+      p.addEventListener('mousemove',onHover);
+      p.addEventListener('mouseleave',offHover);
+      if(yr==='26')p.addEventListener('click',onClic);
+      g.appendChild(p);
+    });
+    svg.appendChild(g);
+  });
+}
+
+function refresh26(){
+  document.querySelectorAll('[id^="p26-"]').forEach(p=>{
+    const code=p.dataset.code;
+    p.setAttribute('fill',getCol26(code));
+  });
+}
+
+// ════════════════════════════════════════════════════════
+// TOOLTIP
+// ════════════════════════════════════════════════════════
+const tip=document.getElementById('tip');
+
+function onHover(e){
+  const code=this.dataset.code,nom=this.dataset.nom,yr=this.dataset.yr;
+  const d=yr==='20'?g20(code):g26(code);
+  const d20=g20(code);
+
+  document.getElementById('tNom').textContent=nom;
+
+  const showRow=(id,val)=>{
+    const row=document.getElementById(id+'Row');
+    if(val&&val!=='—'){document.getElementById(id).textContent=val;if(row)row.style.display='flex';}
+    else if(row) row.style.display='none';
+  };
+
+  const badge=document.getElementById('tBadge');
+  const sep1=document.getElementById('tSep1');
+  const bDiv=document.getElementById('tBasc');
+
+  if(yr==='26'){
+    if(isT2pending(code)){
+      // T2 pas encore saisi: montrer référence 2020
+      showRow('tMaire', d20?.maire||null);
+      showRow('tListe', null);
+      showRow('tPct', null);
+      showRow('tTour', null);
+      let badgeHtml='';
+      if(d20?.nuance){
+        const nk=n20c(d20.nuance);const n=NM[nk];
+        const listeInfo=d20.liste&&d20.liste!=='—'?` — ${d20.liste}`:'';
+        const pctInfo=d20.pct?` (${d20.pct}%)` :'';
+        badgeHtml+=`<div style="margin-top:5px;font-size:11px;color:var(--tx2)">2020 : <span class="pill" style="background:${n?.col}22;color:${n?.col}">${nk}</span> ${d20.maire||''}${pctInfo}</div>`;
+        if(listeInfo) badgeHtml+=`<div style="font-size:10px;color:var(--tx3);margin-top:1px;padding-left:2px">${listeInfo.slice(3)}</div>`;
+        if(d20.note) badgeHtml+=`<div style="font-size:10px;color:var(--tx3);margin-top:2px">${d20.note}</div>`;
+      }
+      badgeHtml+=`<div style="font-size:10px;color:var(--tx3);margin-top:4px">⏳ 2nd tour — résultat à saisir</div>`;
+      badge.innerHTML=badgeHtml;
+      sep1.style.display='none';bDiv.style.display='none';
+
+    } else if(code==='13055'){
+      // MARSEILLE — afficher résultat ville + résumé secteurs
+      showRow('tMaire', d?.maire||d20?.maire||null);
+      showRow('tListe', null);
+      showRow('tPct', d?.pct?d.pct+'%':null);
+      showRow('tTour', d?.tour?`${d.tour===1?'1er':'2ème'} tour`:null);
+      if(d?.nuance){
+        const n=NM[d.nuance];
+        badge.innerHTML=`<div class="tip-badge" style="background:${n?.col}22;color:${n?.col};border:1px solid ${n?.col}44">
+          <span style="display:inline-block;width:8px;height:8px;background:${n?.col};border-radius:1px"></span>
+          ${d.nuance} · ${n?.l||''}</div>`;
+        if(d.tour===1) badge.insertAdjacentHTML('beforeend','<div class="tip-t1-ribbon">★ Élu·e dès le 1er tour</div>');
+      } else {
+        badge.innerHTML=`<div style="font-size:10px;color:var(--tx3);margin-top:4px">⏳ Résultat ville à saisir</div>`;
+      }
+      // Afficher tous les secteurs: T2 saisi ou leader T1
+      let sectHtml=`<div class="tip-sep" style="display:block"></div>`;
+      const t2done2=Object.keys(R26_MRS).length;
+      sectHtml+=`<div style="font-size:10px;color:var(--tx3);margin-bottom:4px;font-weight:600">Secteurs — 1er tour 15/03 (${t2done2}/8 T2 saisis)</div>`;
+      ['s1','s2','s3','s4','s5','s6','s7','s8'].forEach(sid=>{
+        const ms=MRS_SECTEURS[sid];
+        const sd=R26_MRS[sid];       // T2 result if entered
+        const t1=MRS_T1[sid];        // T1 leader data
+        const isT2=!!sd;
+        const nuance=sd?sd.nuance:(t1?.top||'?');
+        const maire=sd?sd.maire:(t1?.topHead||'?');
+        const pct=sd?sd.pct:(t1?.pct||0);
+        const n=NM[nuance];
+        sectHtml+=`<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;font-size:10px;padding:1px 0${isT2?'':';opacity:.75'}">
+          <span class="pill" style="background:${n?.col||'#888'}22;color:${n?.col||'#888'};font-size:9px;padding:0 4px">${nuance}</span>
+          <span style="flex:1;color:${isT2?'var(--tx)':'var(--tx2)'}">${ms.arr}${isT2?(' — '+maire):('')}</span>
+          <span style="color:var(--tx3);font-size:9px">${isT2?'✓T2':'⏳T1'} ${pct?pct.toFixed(1)+'%':''}</span>
+        </div>`;
+      });
+      badge.insertAdjacentHTML('beforeend', sectHtml);
+      // Bascule 2020→2026
+      if(d?.nuance && d20?.nuance){
+        const n20k=n20c(d20.nuance),n26k=d.nuance;
+        const nd20=NM[n20k],nd26=NM[n26k];
+        sep1.style.display='block';bDiv.style.display='block';
+        document.getElementById('tB20').innerHTML=`<span class="pill" style="background:${nd20?.col}22;color:${nd20?.col}">${n20k}</span> <span style="font-size:11px">${d20.maire||'—'}</span>`;
+        document.getElementById('tB26').innerHTML=`<span class="pill" style="background:${nd26?.col}22;color:${nd26?.col}">${n26k}</span> <span style="font-size:11px">${d.maire||'—'}</span>`;
+        {
+          const bs=document.getElementById('tBascStatus');
+          const m20=d20?.maire||'', m26_=d?.maire||d26?.maire||'';
+          if(memeCandidat(m20, m26_))
+            bs.innerHTML=`<span style="color:var(--keep)">= Maire reconduit·e</span>`;
+          else if(estBasculement(d20.nuance, n26k, m20, m26_))
+            bs.innerHTML=`<span style="color:var(--gain)">↔ Basculement ${getBloc(n20k)}→${getBloc(n26k)}</span>`;
+          else
+            bs.innerHTML=`<span style="color:var(--tx3)">~ Même bloc (${getBloc(n26k)})</span>`;
+        }
+      } else {sep1.style.display='none';bDiv.style.display='none';}
+
+    } else {
+      // Commune normale élue (T1 ou T2 saisi)
+      showRow('tMaire', d?.maire||null);
+      showRow('tListe', d?.liste&&d.liste!=='—'?d.liste:null);
+      showRow('tPct', d?.pct?d.pct+'%':null);
+      showRow('tTour', d?.tour?`${d.tour===1?'1er':'2ème'} tour`:null);
+      if(d?.nuance){
+        const n=NM[d.nuance];
+        let badgeHtml=`<div class="tip-badge" style="background:${n?.col}22;color:${n?.col};border:1px solid ${n?.col}44">
+          <span style="display:inline-block;width:8px;height:8px;background:${n?.col};border-radius:1px"></span>
+          ${d.nuance} · ${n?.l||''}</div>`;
+        if(d.tour===1) badgeHtml+='<div class="tip-t1-ribbon">★ Élu·e dès le 1er tour</div>';
+        // Note < 3500 hab
+        if(d.nuance==='LDIV' && D26_T1[code]){
+          badgeHtml+='<div style="font-size:9px;color:var(--tx3);margin-top:3px">LDIV : commune non nuancée officiellement (< 3 500 hab.)</div>';
+        }
+        badge.innerHTML=badgeHtml;
+      } else badge.innerHTML='';
+
+      // Comparaison 2020→2026
+      const n20k=d20?n20c(d20.nuance):null;
+      const n26k=d?.nuance;
+      const nd20=NM[n20k],nd26=NM[n26k];
+      if(n20k&&n26k){
+        sep1.style.display='block';bDiv.style.display='block';
+        document.getElementById('tB20').innerHTML=`<span class="pill" style="background:${nd20?.col}22;color:${nd20?.col}">${n20k}</span> <span style="font-size:11px">${d20?.maire||'—'}</span>`;
+        document.getElementById('tB26').innerHTML=`<span class="pill" style="background:${nd26?.col}22;color:${nd26?.col}">${n26k}</span> <span style="font-size:11px">${d?.maire||'—'}</span>`;
+        {
+          const bs=document.getElementById('tBascStatus');
+          const m20=d20?.maire||'', m26_=d?.maire||d26?.maire||'';
+          if(memeCandidat(m20, m26_))
+            bs.innerHTML=`<span style="color:var(--keep)">= Maire reconduit·e</span>`;
+          else if(estBasculement(d20.nuance, n26k, m20, m26_))
+            bs.innerHTML=`<span style="color:var(--gain)">↔ Basculement ${getBloc(n20k)}→${getBloc(n26k)}</span>`;
+          else
+            bs.innerHTML=`<span style="color:var(--tx3)">~ Même bloc (${getBloc(n26k)})</span>`;
+        }
+      } else {sep1.style.display='none';bDiv.style.display='none';}
+    }
+  } else {
+    // Carte 2020
+    showRow('tMaire', d?.maire||null);
+    showRow('tListe', d?.liste&&d.liste!=='—'?d.liste:null);
+    showRow('tPct', d?.pct?d.pct+'%':null);
+    showRow('tTour', d?.tour?`${d.tour===1?'1er':'2ème'} tour`:null);
+    if(d?.nuance){
+      const nk=n20c(d.nuance);const n=NM[nk];
+      let bHtml=`<div class="tip-badge" style="background:${n?.col}22;color:${n?.col};border:1px solid ${n?.col}44">
+        <span style="display:inline-block;width:8px;height:8px;background:${n?.col};border-radius:1px"></span>
+        ${nk} · ${n?.l||''}</div>`;
+      if(d.note) bHtml+=`<div style="font-size:9px;color:var(--tx3);margin-top:3px">${d.note}</div>`;
+      else if(d.nuance==='LDIV'&&!d.liste) bHtml+=`<div style="font-size:9px;color:var(--tx3);margin-top:3px">Non nuancé officiellement (< 3 500 hab.)</div>`;
+      badge.innerHTML=bHtml;
+    } else badge.innerHTML='';
+    sep1.style.display='none';bDiv.style.display='none';
+  }
+
+  tip.classList.add('on');mvTip(e);
+}
+function offHover(){tip.classList.remove('on');}
+document.addEventListener('mousemove',e=>{if(tip.classList.contains('on'))mvTip(e);});
+function mvTip(e){
+  const tw=tip.offsetWidth,th=tip.offsetHeight;
+  let x=e.clientX+16,y=e.clientY-10;
+  if(x+tw>window.innerWidth-8)x=e.clientX-tw-16;
+  if(y+th>window.innerHeight-8)y=e.clientY-th-10;
+  tip.style.left=x+'px';tip.style.top=y+'px';
+}
+
+// ════════════════════════════════════════════════════════
+// SÉLECTION
+// ════════════════════════════════════════════════════════
+function onClic(){ select(this.dataset.code,this.dataset.nom); document.querySelector('[data-p="saisie"]').click(); }
+
+function select(code,nom){
+  document.querySelectorAll('.cp-sel').forEach(p=>p.classList.remove('cp-sel'));
+  selCode=code;
+  const p=document.getElementById('p26-'+code);
+  if(p) p.classList.add('cp-sel');
+
+  document.getElementById('selNom').textContent=nom;
+  document.getElementById('selCode').textContent=`INSEE : ${code}`;
+
+  const t1badge=document.getElementById('selT1badge');
+  const isT1c=!!D26_T1[code]&&!T2_CODES.has(code);
+  t1badge.style.display=isT1c?'inline-flex':'none';
+
+  // Marseille switch: show sector form, hide standard form
+  const isMrs = (code==='13055');
+  document.getElementById('formStd').style.display = isMrs?'none':'flex';
+  document.getElementById('formMrs').style.display = isMrs?'flex':'none';
+  if(isMrs){ initMrsForm(); return; }
+
+  document.getElementById('valBtn').disabled=false;
+
+  const ex=R26[code];
+  const t1data=D26_T1[code];
+
+  if(ex){
+    sel26.value=ex.nuance||'';
+    document.getElementById('maireIn').value=ex.maire||'';
+    document.getElementById('listeIn').value=ex.liste&&ex.liste!=='—'?ex.liste:'';
+    document.getElementById('pctIn').value=ex.pct!=null?ex.pct:'';
+    document.getElementById('tourSel').value=ex.tour||2;
+    document.getElementById('delBtn').style.display='block';
+  } else if(t1data){
+    sel26.value=t1data.nuance||'';
+    document.getElementById('maireIn').value=t1data.maire||'';
+    document.getElementById('listeIn').value='';
+    document.getElementById('pctIn').value=t1data.pct||'';
+    document.getElementById('tourSel').value=1;
+    document.getElementById('delBtn').style.display='none';
+  } else {
+    // T2 pending — pré-remplir si candidat identique à 2020
+    const d20ref = g20(code);
+    sel26.value = d20ref ? n20c(d20ref.nuance) : '';
+    document.getElementById('maireIn').value='';
+    document.getElementById('listeIn').value='';
+    document.getElementById('pctIn').value='';
+    document.getElementById('tourSel').value=2;
+    document.getElementById('delBtn').style.display='none';
+  }
+
+  document.getElementById('srch').value=nom;
+  document.getElementById('srchX').classList.add('on');
+}
+document.getElementById('valBtn').addEventListener('click',()=>{
+  if(!selCode) return;
+  const nuance=sel26.value;
+  if(!nuance){notif('⚠ Choisir une nuance');return;}
+  const nomCommune=communes.find(c=>c.code===selCode)?.nom||selCode;
+  R26[selCode]={
+    nuance,
+    maire:document.getElementById('maireIn').value.trim()||'—',
+    liste:document.getElementById('listeIn').value.trim()||'—',
+    pct:parseFloat(document.getElementById('pctIn').value)||null,
+    tour:parseInt(document.getElementById('tourSel').value)||2,
+    manual:true, ts:Date.now()
+  };
+  refresh26();updateAll();
+  document.getElementById('delBtn').style.display='block';
+  document.getElementById('liveDot').classList.add('on');
+  addLog(`✓ ${nomCommune} — ${nuance} (${R26[selCode].pct||'?'}%) T${R26[selCode].tour}`);
+  notif(`✓ ${nomCommune} enregistré`);
+  if(ghToken) pushSync();
+});
+
+document.getElementById('delBtn').addEventListener('click',()=>{
+  if(!selCode) return;
+  delete R26[selCode];
+  refresh26();updateAll();
+  document.getElementById('delBtn').style.display='none';
+  // re-fill with T1 data if available
+  const t1=D26_T1[selCode];
+  if(t1){sel26.value=t1.nuance;document.getElementById('maireIn').value=t1.maire||'';document.getElementById('tourSel').value=1;}
+  notif('Saisie manuelle effacée');
+});
+
+// ════════════════════════════════════════════════════════
+// MARSEILLE — LOGIQUE SECTEURS
+// ════════════════════════════════════════════════════════
+function initMrsForm(){
+  // Populate nuance selects for Marseille
+  ['mrsNuance','mrsGlobalNuance'].forEach(id=>{
+    const s=document.getElementById(id);
+    if(s.options.length<=1){
+      const tmp2={};
+      NUANCES.forEach(n=>{if(!tmp2[n.bloc])tmp2[n.bloc]=[];tmp2[n.bloc].push(n);});
+      ['EXG','GAU','DIV','CENT','DTE','EXD'].forEach(b=>{
+        const og=document.createElement('optgroup');og.label={EXG:'⚡ Extrême gauche',GAU:'◀ Gauche',DIV:'○ Divers',CENT:'● Centre',DTE:'▶ Droite',EXD:'⚡ Extrême droite'}[b];
+        (tmp2[b]||[]).forEach(n=>{const o=document.createElement('option');o.value=n.c;o.textContent=`${n.c} — ${n.l}`;og.appendChild(o);});
+        s.appendChild(og);
+      });
+    }
+  });
+  // Auto-select current sector if switching
+  renderMrsSummary();
+  // Pre-fill global if exists
+  const gbl=R26['13055'];
+  if(gbl){
+    document.getElementById('mrsGlobalNuance').value=gbl.nuance||'';
+    document.getElementById('mrsGlobalMaire').value=gbl.maire||'';
+    document.getElementById('mrsGlobalPct').value=gbl.pct||'';
+    document.getElementById('mrsGlobalTour').value=gbl.tour||2;
+  }
+}
+
+// When sector changes, pre-fill if already saved
+document.addEventListener('change', e=>{
+  if(e.target.id!=='mrsSecteur') return;
+  const sid=e.target.value;
+  if(!sid) return;
+  const existing=R26_MRS[sid];
+  if(existing){
+    document.getElementById('mrsNuance').value=existing.nuance||'';
+    document.getElementById('mrsMaire').value=existing.maire||'';
+    document.getElementById('mrsPct').value=existing.pct||'';
+    document.getElementById('mrsTour').value=existing.tour||2;
+  } else {
+    document.getElementById('mrsNuance').value='';
+    document.getElementById('mrsMaire').value='';
+    document.getElementById('mrsPct').value='';
+    document.getElementById('mrsTour').value=2;
+  }
+});
+
+document.getElementById('mrsValSecteur').addEventListener('click',()=>{
+  const sid=document.getElementById('mrsSecteur').value;
+  if(!sid){notif('⚠ Choisir un secteur');return;}
+  const nuance=document.getElementById('mrsNuance').value;
+  if(!nuance){notif('⚠ Choisir une nuance');return;}
+  const lbl2=MRS_SECTEURS[sid]?.label||sid;
+  R26_MRS[sid]={
+    nuance,
+    maire:document.getElementById('mrsMaire').value.trim()||'—',
+    pct:parseFloat(document.getElementById('mrsPct').value)||null,
+    tour:parseInt(document.getElementById('mrsTour').value)||2,
+    ts:Date.now()
+  };
+  renderMrsSummary();
+  document.getElementById('liveDot').classList.add('on');
+  addLog(`✓ ${lbl2} — ${nuance} (${R26_MRS[sid].pct||'?'}%) T${R26_MRS[sid].tour}`);
+  notif(`✓ ${lbl2} enregistré`);
+  updateAll();
+  if(ghToken) pushSync();
+});
+
+document.getElementById('mrsValGlobal').addEventListener('click',()=>{
+  const nuance=document.getElementById('mrsGlobalNuance').value;
+  if(!nuance){notif('⚠ Choisir une nuance pour la ville');return;}
+  R26['13055']={
+    nuance,
+    maire:document.getElementById('mrsGlobalMaire').value.trim()||'—',
+    pct:parseFloat(document.getElementById('mrsGlobalPct').value)||null,
+    tour:parseInt(document.getElementById('mrsGlobalTour').value)||2,
+    manual:true
+  };
+  refresh26();updateAll();
+  document.getElementById('liveDot').classList.add('on');
+  notif('✓ Marseille ville enregistrée');
+});
+
+function renderMrsSummary(){
+  const wrap=document.getElementById('mrsSummary');
+  const list=document.getElementById('mrsSummaryList');
+  wrap.style.display='flex';
+  // Show all 8 sectors — T2 entered or T1 leader
+  list.innerHTML=Object.keys(MRS_SECTEURS).sort().map(sid=>{
+    const ms=MRS_SECTEURS[sid];
+    const d=R26_MRS[sid];
+    const t1=ms.t1;
+    const display=d||{nuance:t1?.nuance,pct:t1?.pct};
+    const n=NM[display?.nuance];
+    const isT2done=!!d;
+    const lbl=ms.label.replace('Secteur \d+ — ','').replace(/Secteur \d+ — /,'');
+    return `<div style="display:flex;align-items:center;gap:5px;padding:3px 6px;background:${isT2done?'var(--surf2)':'var(--surf3)'};border-radius:3px;cursor:pointer;font-size:11px;border-left:2px solid ${isT2done?n?.col:'var(--bd)' }"
+      onclick="document.getElementById('mrsSecteur').value='${sid}';document.getElementById('mrsSecteur').dispatchEvent(new Event('change'))">
+      <span class="pill" style="background:${n?.col}22;color:${n?.col};font-size:10px">${display?.nuance||'?'}</span>
+      <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${ms.arr}</span>
+      <span style="color:var(--tx3);font-size:10px">${isT2done?'T2 ✓':'T1 '+( display?.pct?display.pct.toFixed(1)+'%':'')}</span>
+    </div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════════════════════
+// RECHERCHE
+// ════════════════════════════════════════════════════════
+const srchEl=document.getElementById('srch'),suggsEl=document.getElementById('suggs');
+srchEl.addEventListener('input',()=>{
+  const q=srchEl.value.toLowerCase().trim();
+  document.getElementById('srchX').classList.toggle('on',q.length>0);
+  if(q.length<2){suggsEl.classList.remove('on');return;}
+  const m=communes.filter(c=>c.nom.toLowerCase().includes(q)).slice(0,12);
+  suggsEl.innerHTML=m.map(c=>{
+    const d=g26(c.code);
+    const nuance=d?.nuance;
+    const col=nuance?(NM[nuance]?.col||'#555'):'var(--tx3)';
+    const status=T2_CODES.has(c.code)&&!R26[c.code]?'⏳':nuance?nuance:'';
+    return `<div class="sg" data-code="${c.code}" data-nom="${c.nom}">
+      <div class="sg-dot" style="background:${col}"></div>
+      <span>${c.nom}</span>
+      <span class="sg-info">${status}</span>
+    </div>`;
+  }).join('');
+  suggsEl.classList.toggle('on',m.length>0);
+});
+suggsEl.addEventListener('click',e=>{const it=e.target.closest('.sg');if(!it)return;select(it.dataset.code,it.dataset.nom);suggsEl.classList.remove('on');});
+document.getElementById('srchX').addEventListener('click',()=>{srchEl.value='';document.getElementById('srchX').classList.remove('on');suggsEl.classList.remove('on');});
+document.addEventListener('click',e=>{if(!e.target.closest('.srch-wrap'))suggsEl.classList.remove('on');});
+
+// ════════════════════════════════════════════════════════
+// MISE À JOUR GLOBALE
+// ════════════════════════════════════════════════════════
+function updateAll(){
+  // Count T2 done: T2 communes + Marseille city (when ville set)
+  const t2done=Object.keys(R26).filter(c=>T2_CODES.has(c)).length;
+  // For Marseille: count as "done" when city result set; sectors shown separately
+  document.getElementById('cT2r').textContent=t2done;
+  // Update Marseille summary if visible
+  if(selCode==='13055') renderMrsSummary();
+
+  // Count basculements (changement de bloc) et reconductions (même maire)
+  let basc=0,keep=0;
+  const allCodes=new Set([...Object.keys(D26_T1),...Object.keys(R26)]);
+  allCodes.forEach(code=>{
+    const d26=g26(code),d20=g20(code);
+    if(!d26||!d20||!d26.nuance||!d20.nuance)return;
+    if(memeCandidat(d20.maire, d26.maire)) keep++;
+    else if(estBasculement(d20.nuance, d26.nuance, d20.maire, d26.maire)) basc++;
+  });
+  document.getElementById('cBasc').textContent=basc;
+  document.getElementById('cKeep').textContent=keep;
+
+  updateProg();
+  updateBascules();
+  if(typeof updateDashboard==='function') updateDashboard();
+}
+
+function updateProg(){
+  const counts={};
+  communes.forEach(({code})=>{
+    const d=g26(code);
+    if(d?.nuance) counts[d.nuance]=(counts[d.nuance]||0)+1;
+  });
+  NUANCES.forEach(n=>{const el=document.getElementById('lc-'+n.c);if(el)el.textContent=counts[n.c]||'—';});
+  const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  const tot=sorted.reduce((s,[,v])=>s+v,0)||1;
+  const pw=document.getElementById('progWrap');
+  if(!sorted.length){pw.innerHTML='<span style="font-size:11px;color:var(--tx3)">Aucune donnée</span>';return;}
+  pw.innerHTML=sorted.map(([c,v])=>{
+    const n=NM[c];const pct=Math.round(v/tot*100);
+    return `<div class="pr-row">
+      <span class="pr-lbl" style="color:${n?.col}">${c}</span>
+      <div class="pr-bg"><div class="pr-fill" style="width:${pct}%;background:${n?.col}"></div></div>
+      <span class="pr-cnt">${v}</span>
+    </div>`;
+  }).join('');
+}
+
+function updateBascules(){
+  const items=[];
+  const seen=new Set();
+  const allCodes=[...Object.keys(D26_T1),...Object.keys(R26)];
+  allCodes.forEach(code=>{
+    if(seen.has(code))return;seen.add(code);
+    const d26=g26(code),d20=g20(code);
+    if(!d26||!d20||!d26.nuance||!d20.nuance)return;
+    const n20k=n20c(d20.nuance),n26k=d26.nuance;
+    const nd20=NM[n20k],nd26=NM[n26k];
+    const nom=communes.find(c=>c.code===code)?.nom||code;
+    const reconduit=memeCandidat(d20.maire, d26.maire);
+    const bascule=!reconduit && estBasculement(d20.nuance, d26.nuance, d20.maire, d26.maire);
+    // Afficher uniquement basculements et reconductions
+    if(!reconduit && !bascule) return;
+    const type=bascule?'basc':'same';
+    items.push({code,nom,type,n20k,n26k,nd20,nd26,maire20:d20.maire,maire26:d26.maire,tour:d26.tour});
+  });
+  items.sort((a,b)=>{
+    if(a.type!==b.type) return a.type==='basc'?-1:1;
+    return a.nom.localeCompare(b.nom);
+  });
+  const bl=document.getElementById('bascList');
+  if(!items.length){bl.innerHTML='<span style="font-size:11px;color:var(--tx3)">Aucun résultat saisi.</span>';return;}
+
+  const bascItems=items.filter(i=>i.type==='basc');
+  const sameItems=items.filter(i=>i.type==='same');
+  let html='';
+
+  if(bascItems.length){
+    html+=`<div style="font-size:10px;font-weight:700;color:var(--gain);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px;padding:0 4px">↔ Basculements de bloc (${bascItems.length})</div>`;
+    html+=bascItems.map(it=>{
+      const b20=getBloc(it.n20k),b26=getBloc(it.n26k);
+      return `<div class="bl-item basc" onclick="sel_ext('${it.code}','${it.nom.replace(/'/g,"\\'")}')">
+        <div style="flex:1;min-width:0">
+          <div class="bl-nom">${it.nom}</div>
+          <div class="bl-sub">${it.maire26&&it.maire26!=='—'?it.maire26:''}${it.tour===1?' · T1':' · T2'}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0">
+          <div style="display:flex;align-items:center;gap:3px">
+            ${it.nd20?`<span class="pill" style="background:${it.nd20.col}22;color:${it.nd20.col};font-size:9px">${it.n20k}</span>`:''}
+            <span style="color:var(--tx3);font-size:10px">→</span>
+            <span class="pill" style="background:${it.nd26?.col}22;color:${it.nd26?.col};font-size:9px">${it.n26k}</span>
+          </div>
+          <span style="font-size:9px;font-weight:700;color:var(--gain)">${b20}→${b26}</span>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  if(sameItems.length){
+    html+=`<div style="font-size:10px;font-weight:700;color:var(--keep);text-transform:uppercase;letter-spacing:.6px;margin:${bascItems.length?8:0}px 0 5px;padding:0 4px">= Maires reconduit·e·s (${sameItems.length})</div>`;
+    html+=sameItems.map(it=>`<div class="bl-item same" onclick="sel_ext('${it.code}','${it.nom.replace(/'/g,"\\'")}')">
+        <div style="flex:1;min-width:0">
+          <div class="bl-nom">${it.nom}</div>
+          <div class="bl-sub">${it.maire26&&it.maire26!=='—'?it.maire26:''}${it.tour===1?' · T1':' · T2'}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0">
+          <div style="display:flex;align-items:center;gap:3px">
+            ${it.nd20?`<span class="pill" style="background:${it.nd20.col}22;color:${it.nd20.col};font-size:9px">${it.n20k}</span>`:''}
+            <span style="color:var(--tx3);font-size:10px">=</span>
+            <span class="pill" style="background:${it.nd26?.col}22;color:${it.nd26?.col};font-size:9px">${it.n26k}</span>
+          </div>
+          <span style="font-size:9px;color:var(--keep)">reconduit·e</span>
+        </div>
+      </div>`).join('');
+  }
+  bl.innerHTML=html;
+}
+window.sel_ext=(code,nom)=>{select(code,nom);document.querySelector('[data-p="saisie"]').click();};
+
+// ════════════════════════════════════════════════════════
+// NOTIF
+// ════════════════════════════════════════════════════════
+let ntT;
+function notif(msg){const el=document.getElementById('notif');el.textContent=msg;el.classList.add('on');clearTimeout(ntT);ntT=setTimeout(()=>el.classList.remove('on'),2200);}
+
+// ════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════
+async function init(){
+  let geo;
+  try{geo=await loadGeo();}
+  catch(e){
+    ['ld20','ld26'].forEach(id=>{const l=document.getElementById(id);l.querySelector('.spin').style.display='none';l.insertAdjacentHTML('beforeend','<span style="color:var(--tx3);font-size:11px">Erreur réseau</span>');});
+    return;
+  }
+  communes=geo.features.map(f=>({code:f.properties.code,nom:f.properties.nom})).sort((a,b)=>a.nom.localeCompare(b.nom));
+  const paths=project(geo,600,500);
+  drawMaps(paths);
+  ['ld20','ld26'].forEach(id=>document.getElementById(id).classList.add('gone'));
+  setTimeout(()=>{document.getElementById('ld20').style.display='none';document.getElementById('ld26').style.display='none';},400);
+  // Pre-populate Marseille nuance selects (same as main selects)
+  ['mrsNuance','mrsGlobalNuance'].forEach(id=>{
+    const s=document.getElementById(id);
+    if(!s||s.options.length>1) return;
+    const blocs2={EXG:'⚡ Extrême gauche',GAU:'◀ Gauche',DIV:'○ Divers',CENT:'● Centre',DTE:'▶ Droite',EXD:'⚡ Extrême droite'};
+    const tmp2={};
+    NUANCES.forEach(n=>{if(!tmp2[n.bloc])tmp2[n.bloc]=[];tmp2[n.bloc].push(n);});
+    ['EXG','GAU','DIV','CENT','DTE','EXD'].forEach(b=>{
+      const og=document.createElement('optgroup');og.label=blocs2[b];
+      (tmp2[b]||[]).forEach(n=>{const o=document.createElement('option');o.value=n.c;o.textContent=`${n.c} — ${n.l}`;og.appendChild(o);});
+      s.appendChild(og);
+    });
+  });
+  updateAll();
+}
+init();
+
+// ════════════════════════════════════════════════════════
+// DASHBOARD BLOCS
+// ════════════════════════════════════════════════════════
+const BLOC_META = {
+  EXG:{label:'Extrême gauche',col:'#6b0f0f'},
+  GAU:{label:'Gauche',        col:'#e65c00'},
+  DIV:{label:'Divers',        col:'#636e72'},
+  CENT:{label:'Centre',       col:'#c8a800'},
+  DTE:{label:'Droite',        col:'#2980b9'},
+  EXD:{label:'Extr. droite',  col:'#0a2463'},
+};
+let dashVisible=false;
+document.getElementById('dashBtn').addEventListener('click',()=>{
+  dashVisible=!dashVisible;
+  document.getElementById('dashboard').classList.toggle('on',dashVisible);
+  const btn=document.getElementById('dashBtn');
+  btn.style.background=dashVisible?'var(--acc)':'';
+  btn.style.color=dashVisible?'#000':'';
+});
+
+function updateDashboard(){
+  const counts={};
+  let totalDep=0;
+  // T1
+  Object.keys(D26_T1).forEach(code=>{
+    const d=D26_T1[code];if(!d?.nuance) return;
+    totalDep++;
+    const b=getBloc(d.nuance)||'DIV';
+    counts[b]=(counts[b]||0)+1;
+  });
+  // T2 saisis (override ou nouveaux)
+  Object.keys(R26).forEach(code=>{
+    const d=R26[code];if(!d?.nuance) return;
+    if(!D26_T1[code]) totalDep++; // comptabilisé une seule fois
+    const b=getBloc(d.nuance)||'DIV';
+    // Si T1 existait, soustraire et recompter avec nouvelle nuance
+    if(D26_T1[code]){
+      const bOld=getBloc(D26_T1[code].nuance)||'DIV';
+      counts[bOld]=Math.max(0,(counts[bOld]||0)-1);
+    }
+    counts[b]=(counts[b]||0)+1;
+  });
+  const total=Object.values(counts).reduce((s,v)=>s+v,0)||1;
+  const pct=Math.round(totalDep/119*100);
+  const bars=document.getElementById('blocBars');
+  const leg=document.getElementById('blocLegend');
+  if(!bars) return;
+  bars.innerHTML='';leg.innerHTML='';
+  ['EXG','GAU','DIV','CENT','DTE','EXD'].forEach(b=>{
+    const n=counts[b]||0;if(!n) return;
+    const w=Math.round(n/total*100);
+    const m=BLOC_META[b];
+    bars.innerHTML+=`<div class="bloc-seg" style="width:${w}%;background:${m.col}" title="${m.label}: ${n}">${n>1?n:''}</div>`;
+    leg.innerHTML+=`<div class="bloc-leg-item"><div class="bloc-leg-dot" style="background:${m.col}"></div>${m.label} <strong style="color:var(--tx)">${n}</strong></div>`;
+  });
+  const fill=document.getElementById('depFill');
+  const lbl=document.getElementById('depLabel');
+  if(fill) fill.style.width=pct+'%';
+  if(lbl) lbl.textContent=`${totalDep} / 119 communes déclarées (${pct}%)`;
+  // Print legend
+  const pl=document.getElementById('printLegend');
+  if(pl) pl.innerHTML=NUANCES.map(n=>`<div class="print-legend-item"><div class="print-legend-dot" style="background:${n.col}"></div><span>${n.c} — ${n.l}</span></div>`).join('');
+}
+
+// ════════════════════════════════════════════════════════
+// LOG
+// ════════════════════════════════════════════════════════
+let logEntries=[];
+function addLog(msg){
+  const hm=new Date().toTimeString().slice(0,5);
+  logEntries.unshift({time:hm,msg});
+  if(logEntries.length>200) logEntries.pop();
+  renderLog();
+  const lb=document.getElementById('logTabBtn');
+  if(lb&&!document.getElementById('p-log').classList.contains('on')){
+    lb.textContent='Log ●';lb.style.color='var(--acc)';
+  }
+}
+function renderLog(){
+  const el=document.getElementById('logList');
+  if(!el) return;
+  if(!logEntries.length){el.innerHTML='<span style="font-size:11px;color:var(--tx3)">Aucune saisie encore.</span>';return;}
+  el.innerHTML=logEntries.map(e=>`<div class="log-item in"><span class="log-time">${e.time}</span><span class="log-msg">${e.msg}</span></div>`).join('');
+}
+window.clearLog=()=>{logEntries=[];renderLog();};
+
+// ════════════════════════════════════════════════════════
+// COLLABORATION — GitHub API
+// Token stocké dans localStorage (jamais dans le repo)
+// Repo PUBLIC : lecture sans token, écriture avec token
+// ════════════════════════════════════════════════════════
+let ghRepo=null,ghToken=null,ghDataSha=null;
+let syncInterval=null,lastSyncHash='',isSyncPushing=false;
+const GH_API='https://api.github.com';
+const GH_RAW='https://raw.githubusercontent.com';
+const LS_REPO='muni26_repo';
+const LS_TOKEN='muni26_token';
+
+function setSyncStatus(state,msg){
+  const dot=document.getElementById('syncDot');
+  const el=document.getElementById('syncMsg');
+  if(dot) dot.className='sync-dot'+(state?' '+state:'');
+  if(el) el.textContent=msg;
+}
+
+window.copySyncId=()=>{
+  if(ghRepo) navigator.clipboard.writeText(ghRepo).then(()=>notif('Repo copié !'));
+};
+
+// Pré-remplir depuis localStorage au clic
+document.addEventListener('DOMContentLoaded',()=>{
+  const btn=document.getElementById('syncSetupBtn');
+  if(btn) btn.addEventListener('click',()=>{
+    const inp=document.getElementById('ghRepoInput');
+    if(inp) inp.value=ghRepo||localStorage.getItem(LS_REPO)||'';
+    const tok=document.getElementById('ghTokenInput');
+    if(tok) tok.value='';
+    openModal('syncModal');
+  });
+});
+
+// ── Se connecter ──────────────────────────────────────────────────────────────
+window.startSync=async()=>{
+  const repo=(document.getElementById('ghRepoInput').value||'').trim();
+  let token=(document.getElementById('ghTokenInput').value||'').trim();
+  if(!repo){notif('⚠ Entrer le repo (utilisateur/repo)');return;}
+  // Fallback : token depuis hash URL ou localStorage
+  if(!token) token=getTokenFromUrl()||localStorage.getItem(LS_TOKEN)||'';
+  if(!token){
+    document.getElementById('tokenManualRow').style.display='block';
+    notif('⚠ Token manquant — demandez le lien de partage à l\'admin');
+    return;
+  }
+  ghRepo=repo; ghToken=token;
+  localStorage.setItem(LS_REPO,repo);
+  localStorage.setItem(LS_TOKEN,token);
+  const _bar=document.getElementById('syncBar');
+  if(_bar) _bar.style.display='flex';
+  const _sid=document.getElementById('syncId');
+  if(_sid) _sid.textContent=repo.split('/')[1]||repo;
+  setSyncStatus('sync','Connexion…');
+  // Fermer la modal IMMÉDIATEMENT — sans attendre le réseau
+  closeModal('syncModal');
+  // Connexion en arrière-plan
+  try{
+    await pullSync();
+    startSyncLoop();
+    addLog('Connecté : '+repo);
+    notif('✓ Connecté à '+repo);
+  }catch(e){
+    setSyncStatus('err','Erreur connexion');
+    console.warn('startSync:',e);
+  }
+};
+
+// Lire token/repo depuis le hash de l'URL (#token=ghp_xxx&repo=user/repo)
+// Le hash n'est jamais envoyé au serveur → token invisible dans les logs
+function getTokenFromUrl(){
+  try{
+    const p=new URLSearchParams(location.hash.slice(1));
+    return p.get('token')||null;
+  }catch(e){return null;}
+}
+function getRepoFromUrl(){
+  try{
+    const p=new URLSearchParams(location.hash.slice(1));
+    return p.get('repo')||null;
+  }catch(e){return null;}
+}
+
+// Auto-reconnexion : hash URL en priorité, puis localStorage
+(function autoReconnect(){
+  const urlToken=getTokenFromUrl();
+  const urlRepo=getRepoFromUrl();
+  const repo=urlRepo||localStorage.getItem(LS_REPO);
+  const token=urlToken||localStorage.getItem(LS_TOKEN);
+  if(repo&&token){
+    ghRepo=repo; ghToken=token;
+    // Sauvegarder le token du lien dans localStorage pour les prochains rechargements
+    if(urlToken){ localStorage.setItem(LS_REPO,repo); localStorage.setItem(LS_TOKEN,token); }
+    // Attendre le DOM avant de toucher aux éléments HTML
+    document.addEventListener('DOMContentLoaded',()=>{
+      const inp=document.getElementById('ghRepoInput');
+      if(inp) inp.value=repo;
+      const bar=document.getElementById('syncBar');
+      if(bar) bar.style.display='flex';
+      const sid=document.getElementById('syncId');
+      if(sid) sid.textContent=repo.split('/')[1]||repo;
+      setSyncStatus('sync','Auto-connexion…');
+      setTimeout(async()=>{ await pullSync(); startSyncLoop(); addLog('Auto-connecté : '+repo); },1500);
+    });
+  }
+})();
+
+// ── Initialisation : crée data.json si absent ────────────────────────────────
+window.initGhRepo=async()=>{
+  const repo=((document.getElementById('ghRepoInput')||{}).value||'').trim();
+  const token=((document.getElementById('ghTokenInput')||{}).value||'').trim();
+  if(!repo||!token){notif('⚠ Repo + token requis');return;}
+  setSyncStatus('sync','Initialisation…');
+  const headers={'Authorization':'token '+token,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'};
+  try{
+    // Vérifie si data.json existe déjà
+    const chk=await fetch(GH_API+'/repos/'+repo+'/contents/data.json',{headers});
+    const body={message:'Init données municipales 2026',content:btoa(unescape(encodeURIComponent(JSON.stringify({R26:{},R26_MRS:{},ts:Date.now()},null,2))))};
+    if(chk.ok){
+      // Existe → fournir le SHA pour mettre à jour
+      const existing=await chk.json();
+      body.sha=existing.sha;
+      body.message='Reset données';
+    }
+    const r=await fetch(GH_API+'/repos/'+repo+'/contents/data.json',{method:'PUT',headers,body:JSON.stringify(body)});
+    const data=await r.json();
+    if(!r.ok) throw new Error(data.message||'HTTP '+r.status);
+    ghDataSha=data.content?.sha;
+    ghRepo=repo; ghToken=token;
+    localStorage.setItem('muni26_repo',repo);
+    localStorage.setItem('muni26_token',token);
+    const _s=document.getElementById('syncId'); if(_s) _s.textContent=repo.split('/')[1]||repo;
+    const _b2=document.getElementById('syncBar'); if(_b2) _b2.style.display='flex';
+    startSyncLoop();
+    setSyncStatus('ok','Prêt ✓');
+    addLog('Repo initialisé : '+repo);
+
+    // Générer le lien de partage — token dans le hash (#), jamais envoyé au serveur
+    const shareUrl=location.href.split('#')[0]+'#token='+token+'&repo='+encodeURIComponent(repo);
+    const _su=document.getElementById('shareUrlBox'); if(_su) _su.value=shareUrl;
+    const _sr=document.getElementById('shareUrlRow'); if(_sr) _sr.style.display='block';
+    notif('✓ Prêt ! Copiez le lien ci-dessous et partagez-le.');
+    closeModal('syncModal');
+  }catch(e){
+    setSyncStatus('err',e.message);
+    notif('⚠ '+e.message);
+  }
+};
+
+window.disconnectSync=()=>{
+  clearInterval(syncInterval);syncInterval=null;
+  ghRepo=null;ghToken=null;ghFileSha=null;ghDataSha=null;lastSyncHash='';
+  const _b=document.getElementById('syncBar');
+  if(_b) _b.style.display='none';
+  closeModal('syncModal');notif('Déconnecté');
+};
+
+function startSyncLoop(){
+  clearInterval(syncInterval);
+  syncInterval=setInterval(()=>{if(!isSyncPushing) pullSync();},30000);
+}
+
+// ── Lecture via API GitHub (données fraîches, pas de cache CDN) ──────────────
+async function pullSync(){
+  if(!ghRepo||!ghToken) return;
+  setSyncStatus('sync','Sync…');
+  try{
+    // API GitHub Contents — toujours frais, pas de cache CDN 5min comme raw.githubusercontent
+    const r=await fetch(GH_API+'/repos/'+ghRepo+'/contents/data.json',{
+      headers:{
+        'Authorization':'token '+ghToken,
+        'Accept':'application/vnd.github.v3+json',
+        'Cache-Control':'no-cache'
+      }
+    });
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const meta=await r.json();
+    // Le contenu est en base64 dans meta.content
+    const json=decodeURIComponent(escape(atob(meta.content.replace(/\n/g,''))));
+    const rec=JSON.parse(json);
+    // Mémoriser le SHA pour les futurs pushSync
+    if(meta.sha) ghDataSha=meta.sha;
+    const hash=JSON.stringify(rec);
+    if(hash!==lastSyncHash){
+      lastSyncHash=hash;
+      let changed=false;
+      Object.entries(rec.R26||{}).forEach(([code,v])=>{
+        if(!R26[code]||(v.ts>=(R26[code].ts||0))){R26[code]=v;changed=true;}
+      });
+      Object.entries(rec.R26_MRS||{}).forEach(([sid,v])=>{
+        if(!R26_MRS[sid]||(v.ts>=(R26_MRS[sid].ts||0))){R26_MRS[sid]=v;changed=true;}
+      });
+      if(changed){refresh26();updateAll();addLog('↓ Données reçues');}
+    }
+    const el=document.getElementById('syncLastUpdate');
+    if(el) el.textContent=' — '+new Date().toTimeString().slice(0,5);
+    setSyncStatus('ok','Synchronisé');
+  }catch(e){setSyncStatus('err','Erreur lecture');console.warn('pullSync:',e);}
+}
+
+// ── Écriture : GitHub Contents API, gestion SHA automatique ──────────────────
+window.pushSync=async function(){
+  if(!ghRepo||!ghToken||isSyncPushing) return;
+  isSyncPushing=true; setSyncStatus('sync','Envoi…');
+  try{
+    // Récupérer SHA si pas encore connu
+    if(!ghDataSha){
+      const r0=await fetch(GH_API+'/repos/'+ghRepo+'/contents/data.json',{
+        headers:{'Authorization':'token '+ghToken,'Accept':'application/vnd.github.v3+json'}
+      });
+      if(r0.ok){const d0=await r0.json(); ghDataSha=d0.sha;}
+    }
+    const payload={R26,R26_MRS,ts:Date.now()};
+    const encoded=btoa(unescape(encodeURIComponent(JSON.stringify(payload,null,2))));
+    const body={message:'Résultats '+new Date().toTimeString().slice(0,5),content:encoded};
+    if(ghDataSha) body.sha=ghDataSha;
+    const r=await fetch(GH_API+'/repos/'+ghRepo+'/contents/data.json',{
+      method:'PUT',
+      headers:{'Authorization':'token '+ghToken,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},
+      body:JSON.stringify(body)
+    });
+    const data=await r.json();
+    if(!r.ok) throw new Error(data.message||'HTTP '+r.status);
+    ghDataSha=data.content?.sha;
+    const _su=document.getElementById('syncLastUpdate');
+    if(_su) _su.textContent=' — '+new Date().toTimeString().slice(0,5);
+    setSyncStatus('ok','Synchronisé');
+  }catch(e){
+    setSyncStatus('err','Erreur envoi');
+    ghDataSha=null; // reset SHA pour retry propre
+    console.warn('pushSync:',e);
+  }finally{isSyncPushing=false;}
+};
+
+window.syncNow=()=>pullSync();
+
+// Lire le token depuis le hash de l'URL (#token=ghp_xxx&repo=user/repo)
+function getTokenFromHash(){
+  const hash=location.hash.slice(1);
+  const params=Object.fromEntries(hash.split('&').map(p=>p.split('=')).filter(p=>p.length===2));
+  return params.token||null;
+}
+function getRepoFromHash(){
+  const hash=location.hash.slice(1);
+  const params=Object.fromEntries(hash.split('&').map(p=>p.split('=')).filter(p=>p.length===2));
+  return params.repo?decodeURIComponent(params.repo):null;
+}
+
+// Auto-connexion si token+repo dans le hash ou sessionStorage
+(function autoConnect(){
+  const hashToken=getTokenFromHash();
+  const hashRepo=getRepoFromHash();
+  const storedToken=sessionStorage.getItem('gh_token');
+  const storedRepo=sessionStorage.getItem('gh_repo');
+  const token=hashToken||storedToken;
+  const repo=hashRepo||storedRepo;
+  if(token&&repo){
+    ghToken=token; ghRepo=repo;
+    sessionStorage.setItem('gh_token',token);
+    sessionStorage.setItem('gh_repo',repo);
+    document.addEventListener('DOMContentLoaded',()=>{
+      const inp=document.getElementById('ghRepoInput');
+      if(inp) inp.value=repo;
+      const sid=document.getElementById('syncId');
+      if(sid) sid.textContent=repo.split('/')[1]||repo;
+      const bar=document.getElementById('syncBar');
+      if(bar) bar.style.display='flex';
+      setSyncStatus('sync','Auto-connexion…');
+      setTimeout(async()=>{
+        await pullSync();
+        startSyncLoop();
+        addLog('Auto-connecté : '+repo);
+      },1500);
+    });
+  }
+})();
+
+// ════════════════════════════════════════════════════════
+// EXPORT CSV
+// ════════════════════════════════════════════════════════
+window.exportCSV=function(){
+  const rows=[['code_insee','commune','nuance','bloc','maire','liste','pct','tour','maire_2020','nuance_2020','statut']];
+  communes.forEach(({code,nom})=>{
+    const d26=g26(code),d20=g20(code);
+    if(!d26?.nuance) return;
+    const n20k=d20?n20c(d20.nuance):'';
+    let statut='';
+    if(d20){
+      if(memeCandidat(d20.maire,d26.maire)) statut='reconduit';
+      else if(estBasculement(d20.nuance,d26.nuance,d20.maire,d26.maire)) statut='basculement_'+getBloc(n20k)+'_'+getBloc(d26.nuance);
+      else statut='stable';
+    }
+    rows.push([code,nom,d26.nuance,getBloc(d26.nuance)||'',d26.maire||'',d26.liste||'',d26.pct||'',d26.tour||'',d20?.maire||'',n20k,statut]);
+  });
+  const csv=rows.map(r=>r.map(v=>'"'+String(v||'').replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,﻿'+encodeURIComponent(csv);
+  a.download='municipales2026_bdr_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+  addLog('Export CSV');notif('✓ CSV exporté');
+};
+
+// ════════════════════════════════════════════════════════
+// IMPORT CSV
+// ════════════════════════════════════════════════════════
+window.openImportModal=()=>openModal('importModal');
+window.loadCsvFile=(input)=>{
+  const f=input.files[0];if(!f) return;
+  const reader=new FileReader();
+  reader.onload=e=>{document.getElementById('csvInput').value=e.target.result;};
+  reader.readAsText(f,'UTF-8');
+};
+window.importCSV=()=>{
+  const raw=(document.getElementById('csvInput').value||'').trim();
+  if(!raw){notif('⚠ Aucune donnée');return;}
+  const lines=raw.split('\n').map(l=>l.trim()).filter(Boolean);
+  let start=0;
+  if(lines[0].match(/code_insee|nuance|commune/i)) start=1;
+  let count=0,errors=0;
+  lines.slice(start).forEach(line=>{
+    const cols=line.split(',').map(c=>c.replace(/^"|"$/g,'').replace(/""/g,'"').trim());
+    const [code,,nuance,,maire,liste,pct,tour]=cols;
+    if(!code||!nuance) return;
+    if(!NM[nuance]){errors++;return;}
+    if(!communes.find(c=>c.code===code)){errors++;return;}
+    R26[code]={nuance,maire:maire||'—',liste:liste||'—',pct:parseFloat(pct)||null,tour:parseInt(tour)||2,manual:true,ts:Date.now()};
+    count++;
+  });
+  refresh26();updateAll();
+  document.getElementById('liveDot').classList.add('on');
+  addLog('Import CSV : '+count+' communes'+(errors?', '+errors+' erreurs':''));
+  notif('✓ '+count+' commune(s) importée(s)'+(errors?' ('+errors+' ignorées)':''));
+  closeModal('importModal');
+  document.getElementById('csvInput').value='';
+  if(ghToken) window.pushSync();
+};
+
+// MODAL HELPERS — définis ici pour le backdrop DOMContentLoaded
+document.addEventListener('DOMContentLoaded',()=>{
+  document.querySelectorAll('.modal-bg').forEach(bg=>{
+    bg.addEventListener('click',e=>{if(e.target===bg) bg.classList.remove('on');});
+  });
+});
+</script>
+<!-- ═══ MODAL SYNC GITHUB ═══ -->
+<div class="modal-bg" id="syncModal">
+  <div class="modal">
+    <h3>🔗 Collaboration GitHub</h3>
+    <p style="font-size:11px;color:var(--tx2);line-height:1.6">
+      Le token est stocké <strong>uniquement dans votre navigateur</strong> — jamais dans le repo.<br>
+      Chaque collaborateur saisit repo + token <strong>une seule fois</strong>. L'admin génère ensuite un <strong>lien de partage</strong> pour les autres.
+    </p>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div>
+        <div class="slbl">Repo GitHub</div>
+        <input type="text" class="fi" id="ghRepoInput" placeholder="ex: dupont/municipales-bdr-2026">
+      </div>
+      <div>
+        <div class="slbl">Token GitHub <span style="font-weight:400;text-transform:none;color:var(--tx3)">— scope : public_repo — expiration : 1 day</span></div>
+        <input type="password" class="fi" id="ghTokenInput" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+        <div style="font-size:10px;color:var(--tx3);margin-top:3px">
+          <a href="https://github.com/settings/tokens" target="_blank" style="color:var(--acc)">github.com/settings/tokens</a> → Generate new token (classic) → cocher <strong>public_repo</strong>
+        </div>
+      </div>
+      <button class="btn-sm primary" onclick="startSync()" style="width:100%">▶ Se connecter</button>
+      <details style="font-size:11px">
+        <summary style="cursor:pointer;color:var(--tx3);padding:4px 0">⚙ Administration (première mise en place uniquement)</summary>
+        <div style="margin-top:6px;padding:8px;background:var(--surf2);border-radius:3px;display:flex;flex-direction:column;gap:6px">
+          <div style="font-size:10px;color:var(--tx3);line-height:1.5">À n'utiliser qu'une seule fois pour créer le fichier <code>data.json</code> sur GitHub. Les collaborateurs n'ont pas besoin de cette fonction.</div>
+          <button class="btn-sm" onclick="initGhRepo()">✚ Initialiser data.json</button>
+        </div>
+      </details>
+      <!-- Lien de partage — affiché après init, token dans le #hash (jamais envoyé au serveur) -->
+      <div id="shareUrlRow" style="display:none;flex-direction:column;gap:4px">
+        <div class="slbl" style="color:var(--gain)">✓ Lien à partager aux collaborateurs</div>
+        <div style="display:flex;gap:5px">
+          <input type="text" class="fi" id="shareUrlBox" readonly style="font-size:10px;font-family:'DM Mono',monospace">
+          <button class="btn-sm" onclick="navigator.clipboard.writeText(document.getElementById('shareUrlBox').value).then(()=>notif('Lien copié !'))">Copier</button>
+        </div>
+        <div style="font-size:10px;color:var(--tx3)">Ce lien connecte directement les collaborateurs — le token est dans le <code>#hash</code>, invisible des serveurs.</div>
+      </div>
+      <button class="btn-sm danger" onclick="disconnectSync()">✕ Déconnecter</button>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-sm" onclick="closeModal('syncModal')">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL IMPORT CSV ═══ -->
+<div class="modal-bg" id="importModal">
+  <div class="modal">
+    <h3>📥 Importer des résultats (CSV)</h3>
+    <p>Format attendu (une ligne par commune) :<br>
+    <code style="font-size:10px;background:var(--surf2);padding:2px 6px;border-radius:2px;display:block;margin:6px 0">code_insee,nuance,maire,liste,pct,tour<br>13001,LDVD,Sophie Joissains,Passionnément Aix,52.3,2</code>
+    </p>
+    <div>
+      <div class="slbl">Coller le CSV ou charger un fichier</div>
+      <textarea class="fi" id="csvInput" rows="6" placeholder="code_insee,nuance,maire,liste,pct,tour&#10;13001,LDVD,..." style="resize:vertical;font-family:'DM Mono',monospace;font-size:11px"></textarea>
+      <input type="file" id="csvFile" accept=".csv,.txt" style="display:none" onchange="loadCsvFile(this)">
+      <div style="display:flex;gap:6px;margin-top:6px">
+        <button class="btn-sm" onclick="document.getElementById('csvFile').click()">📁 Charger fichier</button>
+        <button class="btn-sm primary" onclick="importCSV()" style="flex:1">✓ Importer</button>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-sm" onclick="closeModal('importModal')">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRINT LEGEND (visible uniquement à l'impression) -->
+<div class="print-legend" id="printLegend"></div>
+
+</body>
+</html>
